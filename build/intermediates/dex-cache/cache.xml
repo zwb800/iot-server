@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pre-dex-items>
+
+    <item
+        dex="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\pre-dexed\debug\MiPush_SDK_Client_2_2_13_sdk-757ccc965baad6eb8c7323b04a77e3a1831a03e0.jar"
+        jar="D:\Users\admin\IdeaProjects\Iot\server\libs\MiPush_SDK_Client_2_2_13_sdk.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="2099c2a7eefcd58487517d10a1f600ba26125cf4"/>
+    <item
+        dex="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\pre-dexed\debug\classes-738832687583d41dd90db1c76f395c077766372a.jar"
+        jar="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\exploded-aar\com.android.support\support-v4\20.0.0\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="8694693636ab36910c8100ce527c258ff3ebece0"/>
+    <item
+        dex="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\pre-dexed\debug\classes-b37dbf2ba1177beef586f0b6f05668db2785fd15.jar"
+        jar="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\exploded-aar\com.android.support\appcompat-v7\20.0.0\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="f21927d22fe31889ecce94dd697a2e75b137e0ef"/>
+    <item
+        dex="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\pre-dexed\debug\internal_impl-20.0.0-b4b3e0fe3bdf1574aeee1145d4ba07e54ad6cc36.jar"
+        jar="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\exploded-aar\com.android.support\support-v4\20.0.0\libs\internal_impl-20.0.0.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="e40b3078e3fbd353c9f44da8df25a8fc0078209d"/>
+    <item
+        dex="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\pre-dexed\debug\classes-d57f06fde79fb1d51d3e16d2050bb3685e71e480.jar"
+        jar="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\exploded-aar\com.google.android.gms\play-services\4.0.30\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="cebe8e4a3a469c4623addcca1dc571407ff3a08e"/>
+    <item
+        dex="D:\Users\admin\IdeaProjects\Iot\server\build\intermediates\pre-dexed\debug\support-annotations-20.0.0-f17b32ed4afe380f1d6bc261485744478ecea911.jar"
+        jar="D:\Program Files (x86)\Android\android-sdk\extras\android\m2repository\com\android\support\support-annotations\20.0.0\support-annotations-20.0.0.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="9d9013e9ff35fc3756411e62873c363c70c638fa"/>
+
+</pre-dex-items>
