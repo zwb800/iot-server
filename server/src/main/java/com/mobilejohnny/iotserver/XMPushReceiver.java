@@ -35,13 +35,16 @@ public class XMPushReceiver extends PushMessageReceiver {
     public void onReceiveMessage(Context context, MiPushMessage message) {
         Log.d(XMActivity.TAG,
                 "onReceiveMessage is called. " + message.toString());
+        Intent i = new Intent("com.mobilejohnny.iotserver.intent.RECEIVE");
+        i.putExtra("message",message.getContent());
+        context.sendBroadcast(i);
 //        String log = context.getString(R.string.recv_message, message.getContent());
 //        MainActivity.logList.add(0, getSimpleDate() + " " + log);
 
-        Message msg = Message.obtain();
-        if (message.isNotified()) {
-//            msg.obj = log;
-        }
+//        Message msg = Message.obtain();
+//        if (message.isNotified()) {
+////            msg.obj = log;
+//        }
 //        DemoApplication.getHandler().sendMessage(msg);
     }
 
@@ -60,10 +63,6 @@ public class XMPushReceiver extends PushMessageReceiver {
             if(MiPushClient.COMMAND_REGISTER.equals(command))
             {
                 String reg_id = arguments.get(0);
-
-                Intent i = new Intent(context,XMActivity.class);
-                i.putExtra("reg_id",reg_id);
-                context.startActivity(i);
 
                 Log.d(XMActivity.TAG,"RegID:"+reg_id);
             }

@@ -15,6 +15,8 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.mobilejohnny.iotserver.R;
+import com.mobilejohnny.iotserver.bluetooth.Bluetooth;
+import com.mobilejohnny.iotserver.bluetooth.BluetoothListener;
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.*;
 
@@ -30,13 +32,23 @@ public class XMActivity extends ActionBarActivity  {
 
     // 此TAG在adb logcat中检索自己所需要的信息， 只需在命令行终端输入 adb logcat | grep
     // com.xiaomi.mipushdemo
-    public static final String TAG = "com.xiaomi.mipushdemo";
+    public static final String TAG = "xmpush";
 
     private TextView txt;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            txt.setText(msg.getData().getString("reg_id"));
+            String message = msg.getData().getString("message");
+            Bluetooth bluetooth = new Bluetooth("315");
+            bluetooth.setListener(new BluetoothListener() {
+                @Override
+                public void result(int result) {
+                    Toast.makeText(XMActivity.this,result+"",Toast.LENGTH_SHORT).show();
+                }
+            });
+            bluetooth.connect(message);
+            txt.setText(message);
+
         }
     };
 
@@ -50,27 +62,31 @@ public class XMActivity extends ActionBarActivity  {
         txt = (TextView)findViewById(R.id.txt1);
 
         receiver = new Receiver();
+        registerReceiver(receiver, new IntentFilter("com.mobilejohnny.iotserver.intent.RECEIVE"));
+//        registerReceiver(receiver, new IntentFilter("com.xiaomi.mipush.RECEIVE_MESSAGE"));
+//        registerReceiver(receiver, new IntentFilter("com.xiaomi.mipush.ERROR"));
 
+        MiPushClient.registerPush(this, APP_ID, APP_KEY);
+        Log.d(TAG,"开始注册...");
 
+        LoggerInterface newLogger = new LoggerInterface() {
 
-//        LoggerInterface newLogger = new LoggerInterface() {
-//
-//            @Override
-//            public void setTag(String tag) {
-//                // ignore
-//            }
-//
-//            @Override
-//            public void log(String content, Throwable t) {
-//                Log.d(TAG, content, t);
-//            }
-//
-//            @Override
-//            public void log(String content) {
-//                Log.d(TAG, content);
-//            }
-//        };
-//        Logger.setLogger(this, newLogger);
+            @Override
+            public void setTag(String tag) {
+                // ignore
+            }
+
+            @Override
+            public void log(String content, Throwable t) {
+                Log.d(TAG, content, t);
+            }
+
+            @Override
+            public void log(String content) {
+                Log.d(TAG, content);
+            }
+        };
+        Logger.setLogger(this, newLogger);
     }
 
 
@@ -95,16 +111,9 @@ public class XMActivity extends ActionBarActivity  {
 
     @Override
     protected void onResume() {
-        registerReceiver(receiver, new IntentFilter("com.xiaomi.mipush.RECEIVE_MESSAGE"));
-        registerReceiver(receiver, new IntentFilter("com.xiaomi.mipush.ERROR"));
-        // 注册push服务，注册成功后会向DemoMessageReceiver发送广播
-        // 可以从DemoMessageReceiver的onCommandResult方法中MiPushCommandMessage对象参数中获取注册信息
-        MiPushClient.registerPush(this, APP_ID, APP_KEY);
-        Log.d(TAG,"开始注册...");
 
 
         super.onResume();
-
     }
 
     @Override
@@ -112,33 +121,39 @@ public class XMActivity extends ActionBarActivity  {
         unregisterReceiver(receiver);
 
         super.onStop();
-
     }
 
-    private class Receiver extends PushMessageReceiver{
+    private class Receiver extends BroadcastReceiver{
+
+//        @Override
+//        public void onReceiveMessage(Context context, MiPushMessage miPushMessage) {
+//
+//        }
+//
+//        @Override
+//        public void onCommandResult(Context context, MiPushCommandMessage message) {
+//            Log.d(XMActivity.TAG,
+//                    "onCommandResult is called. " + message.toString());
+//            String command = message.getCommand();
+//            List<String> arguments = message.getCommandArguments();
+//
+//            if(message.getResultCode()== ErrorCode.SUCCESS)
+//            {
+//                if(MiPushClient.COMMAND_REGISTER.equals(command))
+//                {
+//                    String reg_id = arguments.get(0);
+//                    Message message1 = new Message();
+//                    message1.getData().putString("reg_id",reg_id);
+//                    handler.sendMessage(message1);
+//                }
+//            }
+//        }
 
         @Override
-        public void onReceiveMessage(Context context, MiPushMessage miPushMessage) {
-            Log.d(TAG,"onReceiveMessage is called.");
-        }
-
-        @Override
-        public void onCommandResult(Context context, MiPushCommandMessage message) {
-            Log.d(XMActivity.TAG,
-                    "onCommandResult is called. " + message.toString());
-            String command = message.getCommand();
-            List<String> arguments = message.getCommandArguments();
-
-            if(message.getResultCode()== ErrorCode.SUCCESS)
-            {
-                if(MiPushClient.COMMAND_REGISTER.equals(command))
-                {
-                    String reg_id = arguments.get(0);
-                    Message message1 = new Message();
-                    message1.getData().putString("reg_id",reg_id);
-                    handler.sendMessage(message1);
-                }
-            }
+        public void onReceive(Context context, Intent intent) {
+            Message message1 = new Message();
+            message1.getData().putString("message",intent.getStringExtra("message"));
+            handler.sendMessage(message1);
         }
     }
 }
