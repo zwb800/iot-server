@@ -1,5 +1,6 @@
 package com.mobilejohnny.iotserver;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,19 +9,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
-import com.mobilejohnny.iotserver.R;
-import com.mobilejohnny.iotserver.bluetooth.Bluetooth;
-import com.mobilejohnny.iotserver.bluetooth.BluetoothListener;
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.*;
-
-import java.util.List;
 
 
 public class XMActivity extends ActionBarActivity  {
@@ -35,40 +31,54 @@ public class XMActivity extends ActionBarActivity  {
     public static final String TAG = "xmpush";
 
     private TextView txt;
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            String message = msg.getData().getString("message");
-            Bluetooth bluetooth = new Bluetooth("315");
-            bluetooth.setListener(new BluetoothListener() {
-                @Override
-                public void result(int result) {
-                    Toast.makeText(XMActivity.this,result+"",Toast.LENGTH_SHORT).show();
-                }
-            });
-            bluetooth.connect(message);
-            txt.setText(message);
 
-        }
-    };
+
 
     Receiver receiver = null;
+    private Button btnConnect;
+    private ProgressDialog progressDialog;
+
+
+    private Handler handler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_xm);
 
-        txt = (TextView)findViewById(R.id.txt1);
+        BluetoothService.startActionConnect(this);
 
-        receiver = new Receiver();
-        registerReceiver(receiver, new IntentFilter("com.mobilejohnny.iotserver.intent.RECEIVE"));
-//        registerReceiver(receiver, new IntentFilter("com.xiaomi.mipush.RECEIVE_MESSAGE"));
-//        registerReceiver(receiver, new IntentFilter("com.xiaomi.mipush.ERROR"));
+        progressDialog = new ProgressDialog(this);
+
+        txt = (TextView)findViewById(R.id.txt1);
+        btnConnect = (Button)findViewById(R.id.btn_connect);
+
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                String message = msg.getData().getString("message");
+                txt.setText(message);
+            }
+        };
+
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               BluetoothService.startActionSend(XMActivity.this,"f4550c");
+            }
+        });
+
+
 
         MiPushClient.registerPush(this, APP_ID, APP_KEY);
         Log.d(TAG,"开始注册...");
 
+        setLogger();
+    }
+
+
+
+    private void setLogger() {
         LoggerInterface newLogger = new LoggerInterface() {
 
             @Override
@@ -110,49 +120,26 @@ public class XMActivity extends ActionBarActivity  {
     }
 
     @Override
-    protected void onResume() {
-
-
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
+        receiver = new Receiver();
+        registerReceiver(receiver, new IntentFilter(XMPushReceiver.ACTION_SEND));
     }
 
     @Override
     protected void onStop() {
         unregisterReceiver(receiver);
-
+        receiver = null;
+        progressDialog = null;
+        handler = null;
         super.onStop();
     }
 
     private class Receiver extends BroadcastReceiver{
-
-//        @Override
-//        public void onReceiveMessage(Context context, MiPushMessage miPushMessage) {
-//
-//        }
-//
-//        @Override
-//        public void onCommandResult(Context context, MiPushCommandMessage message) {
-//            Log.d(XMActivity.TAG,
-//                    "onCommandResult is called. " + message.toString());
-//            String command = message.getCommand();
-//            List<String> arguments = message.getCommandArguments();
-//
-//            if(message.getResultCode()== ErrorCode.SUCCESS)
-//            {
-//                if(MiPushClient.COMMAND_REGISTER.equals(command))
-//                {
-//                    String reg_id = arguments.get(0);
-//                    Message message1 = new Message();
-//                    message1.getData().putString("reg_id",reg_id);
-//                    handler.sendMessage(message1);
-//                }
-//            }
-//        }
-
         @Override
         public void onReceive(Context context, Intent intent) {
             Message message1 = new Message();
-            message1.getData().putString("message",intent.getStringExtra("message"));
+            message1.getData().putString("message",intent.getStringExtra(XMPushReceiver.EXTRA_PARAM_MESSAGE));
             handler.sendMessage(message1);
         }
     }

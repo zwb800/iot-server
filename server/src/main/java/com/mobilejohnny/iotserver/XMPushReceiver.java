@@ -31,13 +31,21 @@ import com.xiaomi.mipush.sdk.*;
  */
 public class XMPushReceiver extends PushMessageReceiver {
 
+    public static final String ACTION_SEND = "com.mobilejohnny.iotserver.action.SEND";
+    public static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
+
     @Override
     public void onReceiveMessage(Context context, MiPushMessage message) {
         Log.d(XMActivity.TAG,
                 "onReceiveMessage is called. " + message.toString());
-        Intent i = new Intent("com.mobilejohnny.iotserver.intent.RECEIVE");
-        i.putExtra("message",message.getContent());
+        String msg = message.getContent();
+
+        Intent i = new Intent(ACTION_SEND);
+        i.putExtra(EXTRA_PARAM_MESSAGE,msg);
+
+        BluetoothService.startActionSend(context,msg);
         context.sendBroadcast(i);
+
 //        String log = context.getString(R.string.recv_message, message.getContent());
 //        MainActivity.logList.add(0, getSimpleDate() + " " + log);
 
