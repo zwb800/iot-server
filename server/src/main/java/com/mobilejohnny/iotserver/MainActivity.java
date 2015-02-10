@@ -71,6 +71,7 @@ public class MainActivity extends ActionBarActivity  {
 
 
         MiPushClient.registerPush(this, APP_ID, APP_KEY);
+
         Log.d(TAG,"开始注册...");
 
         setLogger();
@@ -103,7 +104,7 @@ public class MainActivity extends ActionBarActivity  {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.xm, menu);
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
@@ -114,6 +115,12 @@ public class MainActivity extends ActionBarActivity  {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            return true;
+        }
+        else if (id == R.id.action_exit) {
+            BluetoothService.startActionDisconnect(this);
+            MiPushClient.unregisterPush(this);
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -129,6 +136,7 @@ public class MainActivity extends ActionBarActivity  {
     @Override
     protected void onStop() {
         unregisterReceiver(receiver);
+
         receiver = null;
         progressDialog = null;
         handler = null;

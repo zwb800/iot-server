@@ -27,6 +27,7 @@ public class BluetoothService extends Service {
 
     // TODO: message
     private static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
+    private static final String ACTION_DISCONNECT =  "com.mobilejohnny.iotserver.action.DISCONNECT";
 
     Bluetooth bluetooth = new Bluetooth();
 
@@ -53,6 +54,13 @@ public class BluetoothService extends Service {
         context.startService(intent);
     }
 
+    public static void startActionDisconnect(Context context) {
+
+        Intent intent = new Intent(context, BluetoothService.class);
+        intent.setAction(ACTION_DISCONNECT);
+        context.startService(intent);
+    }
+
 
 
     public BluetoothService() {
@@ -66,8 +74,7 @@ public class BluetoothService extends Service {
 
     @Override
     public void onDestroy() {
-        bluetooth.close();
-        bluetooth = null;
+        handleActionDisconnect();
         super.onDestroy();
     }
 
@@ -87,13 +94,25 @@ public class BluetoothService extends Service {
             else if (ACTION_CONNECT.equals(action)) {
                 handleActionConnect();
             }
-
+            else if (ACTION_DISCONNECT.equals(action)) {
+                handleActionDisconnect();
+            }
         }
         else
         {
             handleActionConnect();
         }
         return Service.START_STICKY;
+    }
+
+    private void handleActionDisconnect() {
+        if(bluetooth!=null)
+        {
+            bluetooth.close();
+            bluetooth = null;
+        }
+
+        stopSelf();
     }
 
     private void handleActionConnect() {
