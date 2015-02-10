@@ -48,7 +48,7 @@ public class Bluetooth {
 
     public void connect(String deviceName, final BluetoothListener listener) {
         device =  findDeviceByName(deviceName);
-        if(!adapter.isEnabled()){
+        if(adapter!=null&&!adapter.isEnabled()){
             listener.result(RESULT_BLUETOOTH_DISABLED);
             Log.e("BT", "蓝牙未启用");
         }
@@ -68,7 +68,6 @@ public class Bluetooth {
                     return null;
                 }
             }.execute();
-
         }
         else
         {
@@ -226,21 +225,31 @@ public class Bluetooth {
     private BluetoothDevice findDeviceByName(String name) {
         BluetoothDevice device = null;
         Set<BluetoothDevice> devices = getBondedDevices();
-        Iterator<BluetoothDevice> it = devices.iterator();
-        while(it.hasNext())
-        {
-            BluetoothDevice d = it.next();
-            if(d.getName().equals(name))
+
+        if(devices!=null){
+            Iterator<BluetoothDevice> it = devices.iterator();
+            while(it.hasNext())
             {
-                device = d;
-                break;
+                BluetoothDevice d = it.next();
+                if(d.getName().equals(name))
+                {
+                    device = d;
+                    break;
+                }
             }
         }
+
+
         return device;
     }
 
     public static Set<BluetoothDevice> getBondedDevices() {
-        return adapter.getBondedDevices();
+
+        Set<BluetoothDevice> devices = null;
+        if(adapter!=null)
+            devices = adapter.getBondedDevices();
+
+        return devices;
 
     }
 }

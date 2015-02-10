@@ -36,12 +36,12 @@ public class XMPushReceiver extends PushMessageReceiver {
 
     @Override
     public void onReceiveMessage(Context context, MiPushMessage message) {
-        Log.d(XMActivity.TAG,
+        Log.d(MainActivity.TAG,
                 "onReceiveMessage is called. " + message.toString());
         String msg = message.getContent();
 
         Intent i = new Intent(ACTION_SEND);
-        i.putExtra(EXTRA_PARAM_MESSAGE,msg);
+        i.putExtra(EXTRA_PARAM_MESSAGE, msg);
 
         BluetoothService.startActionSend(context,msg);
         context.sendBroadcast(i);
@@ -58,7 +58,7 @@ public class XMPushReceiver extends PushMessageReceiver {
 
     @Override
     public void onCommandResult(Context context, MiPushCommandMessage message) {
-        Log.d(XMActivity.TAG,
+        Log.d(MainActivity.TAG,
                 "onCommandResult is called. " + message.toString());
         String command = message.getCommand();
         List<String> arguments = message.getCommandArguments();
@@ -72,7 +72,7 @@ public class XMPushReceiver extends PushMessageReceiver {
             {
                 String reg_id = arguments.get(0);
 
-                Log.d(XMActivity.TAG,"RegID:"+reg_id);
+                Log.d(MainActivity.TAG,"RegID:"+reg_id);
             }
         }
 

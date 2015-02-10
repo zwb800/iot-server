@@ -65,11 +65,10 @@ public class BluetoothService extends Service {
     }
 
     @Override
-    public void onLowMemory() {
+    public void onDestroy() {
         bluetooth.close();
         bluetooth = null;
-        super.onLowMemory();
-
+        super.onDestroy();
     }
 
     @Override

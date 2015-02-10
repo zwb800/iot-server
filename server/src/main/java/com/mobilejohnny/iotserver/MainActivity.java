@@ -1,9 +1,12 @@
 package com.mobilejohnny.iotserver;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,115 +15,95 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
-import java.io.IOException;
+import com.xiaomi.channel.commonutils.logger.LoggerInterface;
+import com.xiaomi.mipush.sdk.*;
 
 
-public class MainActivity extends ActionBarActivity {
-    private static final String TAG = "Iot Server";
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 0;
-    private static final String SENDER_ID = "949096630918";
-    private GoogleCloudMessaging gcm;
-    private String regid;
+public class MainActivity extends ActionBarActivity  {
+
+    // user your appid the key.
+    public static final String APP_ID = "2882303761517303294";
+    // user your appid the key.
+    public static final String APP_KEY = "5161730349294";
+
+    // 此TAG在adb logcat中检索自己所需要的信息， 只需在命令行终端输入 adb logcat | grep
+    // com.xiaomi.mipushdemo
+    public static final String TAG = "xmpush";
+
     private TextView txt;
-    private Button btnRegister;
+
+
+
+    Receiver receiver = null;
+    private Button btnConnect;
     private ProgressDialog progressDialog;
+
+
+    private Handler handler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        txt = (TextView) findViewById(R.id.txt);
-        btnRegister = (Button)findViewById(R.id.btn_register);
-        progressDialog = new ProgressDialog(MainActivity.this);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("注册中...");
+        BluetoothService.startActionConnect(this);
 
-        btnRegister.setOnClickListener(new View.OnClickListener() {
+        progressDialog = new ProgressDialog(this);
+
+        txt = (TextView)findViewById(R.id.txt1);
+        btnConnect = (Button)findViewById(R.id.btn_connect);
+
+        handler = new Handler() {
             @Override
-            public void onClick(View view) {
-                registerInBackground();
-            }
-        });
-
-        if(checkPlayServices())
-        {
-            gcm = GoogleCloudMessaging.getInstance(this);
-            regid = getRegistrationId(this);
-
-            if(regid==null||regid.equals(""))
-            {
-                registerInBackground();
-            }
-        }
-    }
-
-    private String getRegistrationId(Context context) {
-        return null;
-    }
-
-    private void registerInBackground()
-    {
-        progressDialog.show();
-        txt.setText(null);
-        AsyncTask asyncTask = new AsyncTask() {
-            @Override
-            protected String doInBackground(Object[] objects) {
-                String msg = "";
-                if (gcm == null)
-                    gcm = GoogleCloudMessaging.getInstance(MainActivity.this);
-
-                try {
-                    regid = gcm.register(SENDER_ID);
-                    msg = regid;
-                } catch (IOException e) {
-                    msg = e.getMessage();
-                }
-
-                return msg;
-            }
-
-            @Override
-            protected void onPostExecute(Object o) {
-                super.onPostExecute(o);
-                txt.setText(o.toString());
-                progressDialog.dismiss();
+            public void handleMessage(Message msg) {
+                String message = msg.getData().getString("message");
+                txt.setText(message);
             }
         };
 
-        asyncTask.execute(null,null,null);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        checkPlayServices();
-    }
-
-    private boolean checkPlayServices() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            } else {
-                Log.i(TAG, "This device is not supported.");
-                finish();
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               BluetoothService.startActionSend(MainActivity.this,txt.getText().toString());
             }
-            return false;
-        }
-        return true;
+        });
+
+
+
+        MiPushClient.registerPush(this, APP_ID, APP_KEY);
+        Log.d(TAG,"开始注册...");
+
+        setLogger();
+    }
+
+
+
+    private void setLogger() {
+        LoggerInterface newLogger = new LoggerInterface() {
+
+            @Override
+            public void setTag(String tag) {
+                // ignore
+            }
+
+            @Override
+            public void log(String content, Throwable t) {
+                Log.d(TAG, content, t);
+            }
+
+            @Override
+            public void log(String content) {
+                Log.d(TAG, content);
+            }
+        };
+        Logger.setLogger(this, newLogger);
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.xm, menu);
         return true;
     }
 
@@ -133,13 +116,31 @@ public class MainActivity extends ActionBarActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-
-        if(id == R.id.action_xmactivity)
-        {
-            Intent i = new Intent(this,XMActivity.class);
-            startActivity(i);
-            return true;
-        }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        receiver = new Receiver();
+        registerReceiver(receiver, new IntentFilter(XMPushReceiver.ACTION_SEND));
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterReceiver(receiver);
+        receiver = null;
+        progressDialog = null;
+        handler = null;
+        super.onStop();
+    }
+
+    private class Receiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Message message1 = new Message();
+            message1.getData().putString("message",intent.getStringExtra(XMPushReceiver.EXTRA_PARAM_MESSAGE));
+            handler.sendMessage(message1);
+        }
     }
 }
