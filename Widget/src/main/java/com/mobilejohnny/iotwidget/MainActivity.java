@@ -42,12 +42,16 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    private void sendMessage2(String msg)
+    {
+
+    }
+
     private void sendMessage(String msg)
     {
         Constants.useOfficial();
         final Sender sender = new Sender(APP_SECRET);
         final Message message = new Message.Builder()
-                .timeToLive(0)
                 .payload(msg)
                 .passThrough(1)
                 .restrictedPackageName(APP_PACKAGE)
@@ -62,6 +66,7 @@ public class MainActivity extends ActionBarActivity {
                     result = true;
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Log.e("",e.getMessage());
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
