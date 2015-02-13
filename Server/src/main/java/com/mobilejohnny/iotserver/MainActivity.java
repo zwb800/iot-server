@@ -30,7 +30,7 @@ public class MainActivity extends ActionBarActivity  {
     // com.xiaomi.mipushdemo
     public static final String TAG = "xmpush";
 
-    private TextView txt;
+    private TextView txtData;
 
 
 
@@ -50,21 +50,21 @@ public class MainActivity extends ActionBarActivity  {
 
         progressDialog = new ProgressDialog(this);
 
-        txt = (TextView)findViewById(R.id.txt1);
+        txtData = (TextView)findViewById(R.id.txt_data);
         btnConnect = (Button)findViewById(R.id.btn_connect);
 
         handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 String message = msg.getData().getString("message");
-                txt.setText(message);
+                txtData.setText(message);
             }
         };
 
         btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               BluetoothService.startActionSend(MainActivity.this,txt.getText().toString());
+               BluetoothService.startActionSend(MainActivity.this,txtData.getText().toString());
             }
         });
 

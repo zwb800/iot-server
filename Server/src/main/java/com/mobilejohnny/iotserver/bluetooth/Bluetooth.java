@@ -208,10 +208,12 @@ public class Bluetooth {
     }
 
     private void closeSocket() {
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(socket!=null){
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
