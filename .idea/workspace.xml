@@ -21,7 +21,9 @@
     <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="app: com.mobilejohnny.iotserver" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ede6859-578d-4e94-ad61-c9d16fdce071" name="Default" comment="" />
+    <list default="true" id="3ede6859-578d-4e94-ad61-c9d16fdce071" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+    </list>
     <ignored path="Iot.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -2562,7 +2564,7 @@
       <workItem from="1423631587298" duration="990000" />
       <workItem from="1423796932539" duration="3674000" />
       <workItem from="1423802000900" duration="643000" />
-      <workItem from="1423805429163" duration="1881000" />
+      <workItem from="1423805429163" duration="1966000" />
     </task>
     <task id="LOCAL-00001">
       <created>1423807303548</created>
@@ -2576,7 +2578,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="7188000" />
+    <option name="totallyTimeSpent" value="7273000" />
   </component>
   <component name="TodoView" selected-index="0">
     <todo-panel id="selected-file">
