@@ -31,8 +31,7 @@ import com.xiaomi.mipush.sdk.*;
  */
 public class XMPushReceiver extends PushMessageReceiver {
 
-    public static final String ACTION_SEND = "com.mobilejohnny.iotserver.action.SEND";
-    public static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
+
 
     @Override
     public void onReceiveMessage(Context context, MiPushMessage message) {
@@ -40,11 +39,8 @@ public class XMPushReceiver extends PushMessageReceiver {
                 "onReceiveMessage is called. " + message.toString());
         String msg = message.getContent();
 
-        Intent i = new Intent(ACTION_SEND);
-        i.putExtra(EXTRA_PARAM_MESSAGE, msg);
-
         BluetoothService.startActionSend(context,msg);
-        context.sendBroadcast(i);
+        MainActivity.startActionMessage(context,msg);
 
 //        String log = context.getString(R.string.recv_message, message.getContent());
 //        MainActivity.logList.add(0, getSimpleDate() + " " + log);
@@ -66,11 +62,15 @@ public class XMPushReceiver extends PushMessageReceiver {
 //        String cmdArg2 = ((arguments != null && arguments.size() > 1) ? arguments.get(1) : null);
         String log = "";
 
+
+
         if(message.getResultCode()== ErrorCode.SUCCESS)
         {
+
             if(MiPushClient.COMMAND_REGISTER.equals(command))
             {
                 String reg_id = arguments.get(0);
+                MainActivity.startActionXMPUSH_REGISTER(context,reg_id);
 
                 Log.d(MainActivity.TAG,"RegID:"+reg_id);
             }

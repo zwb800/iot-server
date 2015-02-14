@@ -21,6 +21,10 @@ import com.xiaomi.mipush.sdk.*;
 
 public class MainActivity extends ActionBarActivity  {
 
+    public static final String ACTION_SEND = "com.mobilejohnny.iotserver.action.SEND";
+    public static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
+    public static final String ACTION_XMPUSH_REGISTER = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
+
     // user your appid the key.
     public static final String APP_ID = "2882303761517303294";
     // user your appid the key.
@@ -36,10 +40,10 @@ public class MainActivity extends ActionBarActivity  {
 
     Receiver receiver = null;
     private Button btnConnect;
-    private ProgressDialog progressDialog;
-
 
     private Handler handler = null;
+    private TextView txtRegID;
+    private TextView txtBluetooth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +52,9 @@ public class MainActivity extends ActionBarActivity  {
 
         BluetoothService.startActionConnect(this);
 
-        progressDialog = new ProgressDialog(this);
-
         txtData = (TextView)findViewById(R.id.txt_data);
+        txtRegID = (TextView)findViewById(R.id.txt_regid);
+        txtBluetooth = (TextView)findViewById(R.id.txt_bluetooth);
         btnConnect = (Button)findViewById(R.id.btn_connect);
 
         handler = new Handler() {
@@ -130,7 +134,8 @@ public class MainActivity extends ActionBarActivity  {
     protected void onStart() {
         super.onStart();
         receiver = new Receiver();
-        registerReceiver(receiver, new IntentFilter(XMPushReceiver.ACTION_SEND));
+        registerReceiver(receiver, new IntentFilter(ACTION_SEND));
+        registerReceiver(receiver, new IntentFilter(ACTION_XMPUSH_REGISTER));
     }
 
     @Override
@@ -138,17 +143,43 @@ public class MainActivity extends ActionBarActivity  {
         unregisterReceiver(receiver);
 
         receiver = null;
-        progressDialog = null;
         handler = null;
         super.onStop();
+    }
+
+    public static void startActionXMPUSH_REGISTER(Context context,String reg_id)
+    {
+        Intent i = new Intent(ACTION_XMPUSH_REGISTER);
+        i.putExtra(EXTRA_PARAM_MESSAGE, reg_id);
+        context.sendBroadcast(i);
+    }
+
+    public static void startActionMessage(Context context,String message)
+    {
+        Intent i = new Intent(ACTION_SEND);
+        i.putExtra(EXTRA_PARAM_MESSAGE, message);
+        context.sendBroadcast(i);
     }
 
     private class Receiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
-            Message message1 = new Message();
-            message1.getData().putString("message",intent.getStringExtra(XMPushReceiver.EXTRA_PARAM_MESSAGE));
-            handler.sendMessage(message1);
+
+            if(intent.getAction().equals(ACTION_SEND)) {
+                Message message1 = new Message();
+                message1.getData().putString("message", intent.getStringExtra(EXTRA_PARAM_MESSAGE));
+                handler.sendMessage(message1);
+            }
+            else if(intent.getAction().equals(ACTION_XMPUSH_REGISTER)) {
+                final String regid = intent.getStringExtra(EXTRA_PARAM_MESSAGE);
+                new Handler(){
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        txtRegID.setText(regid);
+                    }
+                }.sendEmptyMessage(0);
+            }
         }
     }
 }

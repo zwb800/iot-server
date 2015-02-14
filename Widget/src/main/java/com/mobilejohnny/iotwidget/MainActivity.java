@@ -54,6 +54,7 @@ public class MainActivity extends ActionBarActivity {
         final Message message = new Message.Builder()
                 .payload(msg)
                 .passThrough(1)
+                .timeToLive(0)
                 .restrictedPackageName(APP_PACKAGE)
                 .build();
         Log.i("mipush","开始发送");

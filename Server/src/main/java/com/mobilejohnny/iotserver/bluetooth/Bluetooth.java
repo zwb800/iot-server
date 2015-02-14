@@ -145,15 +145,18 @@ public class Bluetooth {
             Log.i("BT", "已创建SOCKET");
         } catch (IOException e) {
             e.printStackTrace();
+            Log.e("BT",e.getMessage());
             result = false;
         }
         return result;
     }
 
-    private void createSocket2() {
+    private boolean createSocket2() {
+        boolean result = false;
         try {
             Method m = device.getClass().getMethod("createRfcommSocket", new Class[]{int.class});
             socket = (BluetoothSocket) m.invoke(device, 1);
+            result = true;
             Log.i("BT", "已创建SOCKET2");
         } catch (InvocationTargetException e) {
             e.printStackTrace();
@@ -162,6 +165,8 @@ public class Bluetooth {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+
+        return result;
     }
 
 
@@ -183,7 +188,8 @@ public class Bluetooth {
             success = true;
             Log.i("BT","已连接");
             connected = true;
-        } catch (IOException e) {
+        } catch (Exception e) {
+            Log.e("BT",e.getMessage());
             connected = false;
             closeSocket();
             e.printStackTrace();
