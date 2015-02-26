@@ -56,7 +56,7 @@ public class MainActivity extends ActionBarActivity {
         SharedPreferences preference = getPreferences(Context.MODE_PRIVATE);
         String lastMessage = preference.getString("last_message","");
         txtMessage.setText(lastMessage);
-        txtMessage.setSelection(8);
+        txtMessage.setSelection(txtMessage.getText().length());
     }
 
     private void storeMessage() {
