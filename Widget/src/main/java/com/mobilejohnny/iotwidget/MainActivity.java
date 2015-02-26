@@ -1,6 +1,11 @@
 package com.mobilejohnny.iotwidget;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -39,12 +44,26 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-
+        restoreMessage();
     }
 
-    private void sendMessage2(String msg)
-    {
+    protected void onStop() {
+        storeMessage();
+        super.onStop();
+    }
 
+    private void restoreMessage() {
+        SharedPreferences preference = getPreferences(Context.MODE_PRIVATE);
+        String lastMessage = preference.getString("last_message","");
+        txtMessage.setText(lastMessage);
+        txtMessage.setSelection(8);
+    }
+
+    private void storeMessage() {
+        SharedPreferences preference = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preference.edit();
+        editor.putString("last_message",txtMessage.getText().toString());
+        editor.commit();
     }
 
     private void sendMessage(String msg)
@@ -97,7 +116,8 @@ public class MainActivity extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_exit) {
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
