@@ -128,7 +128,7 @@ public class BluetoothService extends Service {
         bluetooth.connect("315",new BluetoothListener() {
             @Override
             public void result(int result) {
-
+                MainActivity.startActionBluetoothConnectResult(BluetoothService.this, result);
             }
         });
     }

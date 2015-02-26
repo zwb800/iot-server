@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import com.mobilejohnny.iotserver.bluetooth.Bluetooth;
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.*;
 
@@ -33,6 +34,7 @@ public class MainActivity extends ActionBarActivity  {
     // 此TAG在adb logcat中检索自己所需要的信息， 只需在命令行终端输入 adb logcat | grep
     // com.xiaomi.mipushdemo
     public static final String TAG = "xmpush";
+    private static final String ACTION_BLUETOOTH_CONNECT_RESULT = "com.mobilejohnny.iotserver.action.BLUETOOTH_CONNECT_RESULT";
 
     private TextView txtData;
 
@@ -136,6 +138,7 @@ public class MainActivity extends ActionBarActivity  {
         receiver = new Receiver();
         registerReceiver(receiver, new IntentFilter(ACTION_SEND));
         registerReceiver(receiver, new IntentFilter(ACTION_XMPUSH_REGISTER));
+        registerReceiver(receiver, new IntentFilter(ACTION_BLUETOOTH_CONNECT_RESULT));
     }
 
     @Override
@@ -161,6 +164,12 @@ public class MainActivity extends ActionBarActivity  {
         context.sendBroadcast(i);
     }
 
+    public static void startActionBluetoothConnectResult(Context context,int result) {
+        Intent i = new Intent(ACTION_BLUETOOTH_CONNECT_RESULT);
+        i.putExtra(EXTRA_PARAM_MESSAGE, result);
+        context.sendBroadcast(i);
+    }
+
     private class Receiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -177,6 +186,16 @@ public class MainActivity extends ActionBarActivity  {
                     public void handleMessage(Message msg) {
                         super.handleMessage(msg);
                         txtRegID.setText(regid);
+                    }
+                }.sendEmptyMessage(0);
+            }
+            else if(intent.getAction().equals(ACTION_BLUETOOTH_CONNECT_RESULT)) {
+                final int result = intent.getIntExtra(EXTRA_PARAM_MESSAGE, Bluetooth.RESULT_FAILD);
+                new Handler(){
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        txtBluetooth.setText(result==Bluetooth.RESULT_SUCCESS?"已连接":"连接失败");
                     }
                 }.sendEmptyMessage(0);
             }
