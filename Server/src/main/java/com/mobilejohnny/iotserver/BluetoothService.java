@@ -74,6 +74,11 @@ public class BluetoothService extends Service {
                 MainActivity.startActionBluetoothConnectResult(BluetoothService.this, result);
 //                Toast.makeText(BluetoothService.this,result==Bluetooth.RESULT_SUCCESS?"成功":"失败",Toast.LENGTH_SHORT).show();
             }
+
+            @Override
+            public void onReceive(String s) {
+
+            }
         });
     }
 

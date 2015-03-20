@@ -14,31 +14,18 @@ public class TCP {
     private OutputStream output;
     private Socket socket;
     private ServerSocket serverSocket;
+    private BufferedWriter bufferedWriter;
 
     public  TCP(TCPListener l)  {
         this.listener = l;
     }
 
-    public boolean connect(String ip,int port)
+    public boolean send(String data)
     {
         boolean result = false;
         try {
-            socket = new Socket(ip,port);
-            output = socket.getOutputStream();
-            result = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-    public boolean send(byte[] data)
-    {
-        boolean result = false;
-        try {
-            output.write(data);
-            output.flush();
+            bufferedWriter.write(data);
+            bufferedWriter.flush();
             result = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -58,14 +45,18 @@ public class TCP {
                     try {
 
                         while(!Thread.currentThread().isInterrupted()){
-                            char[] buffer = new char[1024];
-                            Socket s = serverSocket.accept();
-                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(s.getInputStream()));
 
-                            while(bufferedReader.read(buffer)!=-1)
+                            socket = serverSocket.accept();
+                            socket.getOutputStream();
+                            bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                            char[] buffer = new char[1024*8];
+                            int len = -1;
+                            while((len = bufferedReader.read(buffer))!=-1)
                             {
-                                listener.onReceive(buffer);
+                                listener.onReceive(new String(buffer,0,len));
                             }
+
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -91,6 +82,6 @@ public class TCP {
     }
 
     public interface TCPListener{
-        void onReceive(char[] data);
+        void onReceive(String data);
     }
 }

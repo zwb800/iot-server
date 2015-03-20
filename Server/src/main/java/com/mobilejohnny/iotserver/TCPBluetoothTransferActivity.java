@@ -1,6 +1,7 @@
 package com.mobilejohnny.iotserver;
 
 import android.app.Activity;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,11 +11,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.mobilejohnny.iotserver.bluetooth.Bluetooth;
 import com.mobilejohnny.iotserver.bluetooth.BluetoothListener;
 import com.mobilejohnny.iotserver.bluetooth.TCP;
 import com.xiaomi.mipush.sdk.MiPushClient;
+import org.w3c.dom.Text;
 
 /**
  * Created by admin2 on 2015/3/20.
@@ -26,52 +29,80 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private TCP.TCPListener tcpListener;
     private View decorView;
     private PowerManager.WakeLock wakeLock;
+    private TextView txtBluetooth;
+    private TextView txtData;
+    private int port = 8080;
+    private String bluetoothDeviceName ="BTCOM";
+    private TextView txtIP;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tcpbluetoothtransfer);
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+
+
         wakeLock =  powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"TCP_BT");
+
         decorView = getWindow().getDecorView();
 
+
+        txtData = (TextView)findViewById(R.id.txt_data);
+        txtBluetooth = (TextView) findViewById(R.id.txt_bluetooth);
+        txtIP = (TextView)findViewById(R.id.txt_ip);
+        int ip = wifiManager.getDhcpInfo().ipAddress;
+        String ipString = String.format(
+                "%d.%d.%d.%d",
+                (ip & 0xff),
+                (ip >> 8 & 0xff),
+                (ip >> 16 & 0xff),
+                (ip >> 24 & 0xff));
+        txtIP.setText(ipString+" : "+port);
+
+        final Handler bt =  new Handler();
+
         bluetoothListener = new BluetoothListener(){
+
             @Override
             public void result(final int result) {
-//                new Handler().post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        Toast.makeText(TCPBluetoothTransferActivity.this, result == Bluetooth.RESULT_SUCCESS ? "成功" : "失败", Toast.LENGTH_SHORT).show();
-//                    }
-//                });
+                final String msg = result == Bluetooth.RESULT_SUCCESS ? "已连接" : "连接失败";
+                bt.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtBluetooth.setText( bluetoothDeviceName+" "+msg);
+                    }
+                });
+            }
 
+            @Override
+            public void onReceive(String s) {
+                tcp.send(s);
             }
         };
 
         tcpListener = new TCP.TCPListener() {
             @Override
-            public void onReceive(char[] data) {
-                bluetooth.send(new String(data));
+            public void onReceive(final String data) {
+                bluetooth.send(data);
+                bt.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtData.setText(data);
+                    }
+                });
+
             }
         };
 
         bluetooth = new Bluetooth(bluetoothListener);
         tcp = new TCP(tcpListener);
 
-        bluetooth.connect("OFFICE");
-        tcp.startServer(8080,tcpListener);
+        bluetooth.connect(bluetoothDeviceName);
+        tcp.startServer(port,tcpListener);
         wakeLock.acquire();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
 
     @Override
     protected void onDestroy() {

@@ -7,4 +7,6 @@ import android.bluetooth.BluetoothAdapter;
  */
 public interface BluetoothListener {
     public void result(int result);
+
+    void onReceive(String s);
 }
