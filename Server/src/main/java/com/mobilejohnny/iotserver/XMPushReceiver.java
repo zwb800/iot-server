@@ -31,8 +31,6 @@ import com.xiaomi.mipush.sdk.*;
  */
 public class XMPushReceiver extends PushMessageReceiver {
 
-
-
     @Override
     public void onReceiveMessage(Context context, MiPushMessage message) {
         Log.d(MainActivity.TAG,
@@ -70,7 +68,7 @@ public class XMPushReceiver extends PushMessageReceiver {
             if(MiPushClient.COMMAND_REGISTER.equals(command))
             {
                 String reg_id = arguments.get(0);
-                MainActivity.startActionXMPUSH_REGISTER(context,reg_id);
+                MainActivity.startActionXMPush_Registed(context,reg_id);
 
                 Log.d(MainActivity.TAG,"RegID:"+reg_id);
             }

@@ -29,11 +29,14 @@ public class MainActivity extends ActionBarActivity {
     private static final String APP_PACKAGE = "com.mobilejohnny.iotserver" ;
     private Button btnSend;
     private EditText txtMessage;
+    private SharedPreferences preference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        preference = getPreferences(Context.MODE_PRIVATE);
 
         txtMessage = (EditText)findViewById(R.id.txt_message);
         btnSend = (Button)findViewById(R.id.btn_send);
@@ -53,14 +56,12 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void restoreMessage() {
-        SharedPreferences preference = getPreferences(Context.MODE_PRIVATE);
         String lastMessage = preference.getString("last_message","");
         txtMessage.setText(lastMessage);
         txtMessage.setSelection(txtMessage.getText().length());
     }
 
     private void storeMessage() {
-        SharedPreferences preference = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preference.edit();
         editor.putString("last_message",txtMessage.getText().toString());
         editor.commit();

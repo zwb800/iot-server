@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,7 +25,7 @@ public class MainActivity extends ActionBarActivity  {
 
     public static final String ACTION_SEND = "com.mobilejohnny.iotserver.action.SEND";
     public static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
-    public static final String ACTION_XMPUSH_REGISTER = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
+    public static final String ACTION_XMPUSH_REGISTED = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
 
     // user your appid the key.
     public static final String APP_ID = "2882303761517303294";
@@ -73,8 +74,6 @@ public class MainActivity extends ActionBarActivity  {
                BluetoothService.startActionSend(MainActivity.this,txtData.getText().toString());
             }
         });
-
-
 
         MiPushClient.registerPush(this, APP_ID, APP_KEY);
 
@@ -136,8 +135,10 @@ public class MainActivity extends ActionBarActivity  {
     protected void onStart() {
         super.onStart();
         receiver = new Receiver();
-        registerReceiver(receiver, new IntentFilter(ACTION_SEND));
-        registerReceiver(receiver, new IntentFilter(ACTION_XMPUSH_REGISTER));
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
+
+        localBroadcastManager.registerReceiver(receiver, new IntentFilter(ACTION_SEND));
+        localBroadcastManager.registerReceiver(receiver, new IntentFilter(ACTION_XMPUSH_REGISTED));
         registerReceiver(receiver, new IntentFilter(ACTION_BLUETOOTH_CONNECT_RESULT));
     }
 
@@ -150,11 +151,11 @@ public class MainActivity extends ActionBarActivity  {
         super.onStop();
     }
 
-    public static void startActionXMPUSH_REGISTER(Context context,String reg_id)
+    public static void startActionXMPush_Registed(Context context,String reg_id)
     {
-        Intent i = new Intent(ACTION_XMPUSH_REGISTER);
+        Intent i = new Intent(ACTION_XMPUSH_REGISTED);
         i.putExtra(EXTRA_PARAM_MESSAGE, reg_id);
-        context.sendBroadcast(i);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(i);
     }
 
     public static void startActionMessage(Context context,String message)
@@ -179,7 +180,7 @@ public class MainActivity extends ActionBarActivity  {
                 message1.getData().putString("message", intent.getStringExtra(EXTRA_PARAM_MESSAGE));
                 handler.sendMessage(message1);
             }
-            else if(intent.getAction().equals(ACTION_XMPUSH_REGISTER)) {
+            else if(intent.getAction().equals(ACTION_XMPUSH_REGISTED)) {
                 final String regid = intent.getStringExtra(EXTRA_PARAM_MESSAGE);
                 new Handler(){
                     @Override

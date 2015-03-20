@@ -1,16 +1,12 @@
 package com.mobilejohnny.iotserver.bluetooth;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Handler;
-import android.os.ParcelUuid;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,15 +34,17 @@ public class Bluetooth {
     final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private BluetoothListener listener;
     private boolean connected;
+    private AsyncTask<Void, Void, Integer> task;
 
 
-    public Bluetooth()
+    public Bluetooth(BluetoothListener l)
     {
+        listener = l;
         adapter = BluetoothAdapter.getDefaultAdapter();
         connected = false;
     }
 
-    public void connect(String deviceName, final BluetoothListener listener) {
+    public void connect(String deviceName) {
         device =  findDeviceByName(deviceName);
         if(adapter!=null&&!adapter.isEnabled()){
             listener.result(RESULT_BLUETOOTH_DISABLED);
@@ -76,11 +74,14 @@ public class Bluetooth {
         }
     }
 
-    public void send(final String data, final BluetoothListener listener)
+
+
+
+    public void send(final String data)
     {
         if(socket!=null)
         {
-            AsyncTask<Void,Void,Integer> task = new AsyncTask<Void,Void,Integer>() {
+            new AsyncTask<Void, Void, Integer>() {
                 @Override
                 protected  Integer doInBackground(Void... voids) {
 
@@ -89,9 +90,9 @@ public class Bluetooth {
                         if (connectSocket()) {
                             try {
                                 OutputStream out = socket.getOutputStream();
-                                for (int i = 0; i < data.length(); i++) {
-                                    out.write(data.charAt(i));
-                                }
+
+                                out.write(data.getBytes());
+
                                 out.flush();
                                 result = RESULT_SUCCESS;
                             } catch (IOException e) {
@@ -102,6 +103,9 @@ public class Bluetooth {
 
                     return result;
                 }
+
+
+
 
                 @Override
                 protected void onPostExecute(Integer result) {

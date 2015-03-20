@@ -29,7 +29,7 @@ public class BluetoothService extends Service {
     private static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
     private static final String ACTION_DISCONNECT =  "com.mobilejohnny.iotserver.action.DISCONNECT";
 
-    Bluetooth bluetooth = new Bluetooth();
+    Bluetooth bluetooth ;
 
     /**
      * Starts this service to perform action Foo with the given parameters. If
@@ -61,8 +61,6 @@ public class BluetoothService extends Service {
         context.startService(intent);
     }
 
-
-
     public BluetoothService() {
         super();
     }
@@ -70,6 +68,13 @@ public class BluetoothService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        bluetooth = new Bluetooth(new BluetoothListener() {
+            @Override
+            public void result(int result) {
+                MainActivity.startActionBluetoothConnectResult(BluetoothService.this, result);
+//                Toast.makeText(BluetoothService.this,result==Bluetooth.RESULT_SUCCESS?"成功":"失败",Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -125,22 +130,12 @@ public class BluetoothService extends Service {
 
     private void connect() {
 
-        bluetooth.connect("315",new BluetoothListener() {
-            @Override
-            public void result(int result) {
-                MainActivity.startActionBluetoothConnectResult(BluetoothService.this, result);
-            }
-        });
+        bluetooth.connect("315");
     }
 
     private void send(String message) {
 
-        bluetooth.send(message, new BluetoothListener() {
-            @Override
-            public void result(int result) {
-                Toast.makeText(BluetoothService.this,result==Bluetooth.RESULT_SUCCESS?"成功":"失败",Toast.LENGTH_SHORT).show();
-            }
-        });
+        bluetooth.send(message);
     }
 
 }
