@@ -1,4 +1,6 @@
-package com.mobilejohnny.iotserver.bluetooth;
+package com.mobilejohnny.iotserver;
+
+import com.mobilejohnny.iotserver.ConnectThread;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -34,6 +36,17 @@ public class TCP {
         return result;
     }
 
+    public OutputStream getOutputStream()
+    {
+        OutputStream outputStream = null;
+        try {
+            outputStream = socket.getOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return outputStream;
+    }
+
     public boolean startServer(int port, final TCPListener listener)
     {
         boolean result = false;
@@ -47,22 +60,23 @@ public class TCP {
                         while(!Thread.currentThread().isInterrupted()){
 
                             socket = serverSocket.accept();
-                            socket.getOutputStream();
-                            bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                            char[] buffer = new char[1024*8];
-                            int len = -1;
-                            while((len = bufferedReader.read(buffer))!=-1)
-                            {
-                                listener.onReceive(new String(buffer,0,len));
-                            }
-
+                            listener.onConnected(socket);
+//                            bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+//                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                            char[] buffer = new char[1024*8];
+//                            int len = -1;
+//                            while((len = bufferedReader.read(buffer))!=-1)
+//                            {
+//                                listener.onReceive(new String(buffer,0,len));
+//                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             }).start();
+
+
 
             result = true;
         } catch (IOException e) {
@@ -81,7 +95,11 @@ public class TCP {
         }
     }
 
+    public Socket getSocket() {
+        return socket;
+    }
+
     public interface TCPListener{
-        void onReceive(String data);
+        void onConnected(Socket socket);
     }
 }

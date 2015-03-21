@@ -2,13 +2,10 @@ package com.mobilejohnny.iotserver;
 
 import android.app.IntentService;
 import android.app.Service;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.Context;
 import android.os.IBinder;
-import android.util.Log;
-import android.widget.Toast;
-import com.mobilejohnny.iotserver.bluetooth.Bluetooth;
-import com.mobilejohnny.iotserver.bluetooth.BluetoothListener;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -68,15 +65,17 @@ public class BluetoothService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        bluetooth = new Bluetooth(new BluetoothListener() {
+        bluetooth = new Bluetooth(null,new Bluetooth.BluetoothListener() {
             @Override
             public void result(int result) {
                 MainActivity.startActionBluetoothConnectResult(BluetoothService.this, result);
 //                Toast.makeText(BluetoothService.this,result==Bluetooth.RESULT_SUCCESS?"成功":"失败",Toast.LENGTH_SHORT).show();
             }
 
+
+
             @Override
-            public void onReceive(String s) {
+            public void onConnected(BluetoothSocket socket) {
 
             }
         });

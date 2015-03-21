@@ -1,9 +1,12 @@
-package com.mobilejohnny.iotserver.bluetooth;
+package com.mobilejohnny.iotserver;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
@@ -11,6 +14,7 @@ import android.util.Log;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -25,6 +29,8 @@ public class Bluetooth {
     public static final int RESULT_BLUETOOTH_DISABLED = 4;
     public static final int SDK_VER = Build.VERSION.SDK_INT;
 
+    public static final int REQUEST_ENABLE_BLUETOOTH = 5;
+
     private BluetoothDevice device;
     private static BluetoothAdapter adapter = null;
     private BluetoothSocket socket;
@@ -36,14 +42,25 @@ public class Bluetooth {
     private AsyncTask<Void, Void, Integer> task;
 
 
-    public Bluetooth(BluetoothListener l)
+
+    public Bluetooth(Activity context,BluetoothListener l)
     {
         listener = l;
         adapter = BluetoothAdapter.getDefaultAdapter();
         connected = false;
+
+        if(context!=null&&(!adapter.isEnabled()))
+        {
+            Intent intentEnableBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            context.startActivityForResult(intentEnableBluetooth,REQUEST_ENABLE_BLUETOOTH);
+        }
     }
 
     public void connect(String deviceName) {
+
+        if(connected)
+            return;
+
         device =  findDeviceByName(deviceName);
         if(adapter!=null&&!adapter.isEnabled()){
             listener.result(RESULT_BLUETOOTH_DISABLED);
@@ -58,10 +75,10 @@ public class Bluetooth {
                     int result = RESULT_FAILD;
                     if(createSocket()) {
                         if(connectSocket()){
-                            if(startReceiveThread())
-                            {
+//                            if(startReceiveThread())
+//                            {
                                 result = RESULT_SUCCESS;
-                            }
+//                            }
 
                         }
                     }
@@ -91,7 +108,7 @@ public class Bluetooth {
                         try {
                             while((len = bufferedReader.read(buffer))!=-1)
                             {
-                                listener.onReceive(new String(buffer,0,len));
+//                                listener.onReceive(new String(buffer,0,len));
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -105,6 +122,36 @@ public class Bluetooth {
         }
 
         return success;
+    }
+
+    public OutputStream getOutputStream()
+    {
+        OutputStream out = null;
+        if(socket!=null)
+        {
+            int result = RESULT_FAILD;
+            if (createSocket()&&connectSocket()) {
+                try {
+                    out = socket.getOutputStream();
+
+                    result = RESULT_SUCCESS;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(listener!=null){
+                listener.result(result);
+            }
+
+        }
+        else
+        {
+            listener.result(RESULT_FAILD);
+            Log.e("BT","发送失败");
+        }
+
+        return  out;
     }
 
     public void send(final String data)
@@ -162,11 +209,13 @@ public class Bluetooth {
             }
             result = true;
             Log.i("BT", "已创建SOCKET");
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
             Log.e("BT",e.getMessage());
             result = false;
-        } catch (InvocationTargetException e) {
+        }
+        catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
@@ -176,23 +225,6 @@ public class Bluetooth {
         return result;
     }
 
-    private boolean createSocket2() {
-        boolean result = false;
-        try {
-            Method m = device.getClass().getMethod("createRfcommSocket", new Class[]{int.class});
-            socket = (BluetoothSocket) m.invoke(device, 1);
-            result = true;
-            Log.i("BT", "已创建SOCKET2");
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
 
 
 
@@ -209,6 +241,7 @@ public class Bluetooth {
         try {
             Log.i("BT", "开始连接");
             socket.connect();
+            listener.onConnected(socket);
             Log.i("BT","已连接");
             connected = true;
         } catch (Exception e) {
@@ -283,4 +316,15 @@ public class Bluetooth {
         return devices;
 
     }
+
+    public InputStream getInputStream() throws IOException {
+        return socket.getInputStream();
+    }
+
+    public interface BluetoothListener {
+        public void result(int result);
+
+        void onConnected(BluetoothSocket socket);
+    }
+
 }
