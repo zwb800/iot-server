@@ -14,6 +14,7 @@ public class ConnectThread extends Thread {
     private final OutputStream outputStream;
     private ConnectThreadListener listener;
 
+
     public ConnectThread(InputStream inputStream,OutputStream outputStream)
     {
         this.inputStream = inputStream;
@@ -30,13 +31,12 @@ public class ConnectThread extends Thread {
         super.run();
         while (!Thread.currentThread().isInterrupted())
         {
-            byte[] buffer = new byte[1024*8];
             int len = -1;
             try {
+                byte[] buffer = new byte[1024*8];
                 while((len = inputStream.read(buffer))!=-1)
                 {
                     outputStream.write(buffer,0,len);
-                    outputStream.flush();
 
                     if(listener!=null)
                     {
@@ -45,7 +45,7 @@ public class ConnectThread extends Thread {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+               e.printStackTrace();
             }
         }
     }

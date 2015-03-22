@@ -18,8 +18,7 @@ public class TCP {
     private ServerSocket serverSocket;
     private BufferedWriter bufferedWriter;
 
-    public  TCP(TCPListener l)  {
-        this.listener = l;
+    public  TCP()  {
     }
 
     public boolean send(String data)
@@ -61,14 +60,6 @@ public class TCP {
 
                             socket = serverSocket.accept();
                             listener.onConnected(socket);
-//                            bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-//                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                            char[] buffer = new char[1024*8];
-//                            int len = -1;
-//                            while((len = bufferedReader.read(buffer))!=-1)
-//                            {
-//                                listener.onReceive(new String(buffer,0,len));
-//                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -88,11 +79,14 @@ public class TCP {
 
     public void close()
     {
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(serverSocket!=null){
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
     }
 
     public Socket getSocket() {

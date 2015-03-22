@@ -57,11 +57,4 @@
             android:id="@+id/txt_bluetooth"
             androidcompat:layout_row="3"
         androidcompat:layout_column="1"/>
-    <Button
-            android:id="@+id/btn_connect"
-            android:text="重发"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            androidcompat:layout_row="4"
-            androidcompat:layout_column="0"/>
 </android.support.v7.widget.GridLayout>

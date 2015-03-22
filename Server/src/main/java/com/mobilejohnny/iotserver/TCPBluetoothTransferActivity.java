@@ -19,6 +19,8 @@ import android.widget.TextView;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 /**
@@ -27,6 +29,7 @@ import java.net.Socket;
 public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private Bluetooth bluetooth;
     private TCP tcp;
+    private UDP udp;
     private Bluetooth.BluetoothListener bluetoothListener;
     private TCP.TCPListener tcpListener;
     private View decorView;
@@ -34,9 +37,13 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private TextView txtBluetooth;
     private TextView txtData;
     private int port = 8080;
-    private String bluetoothDeviceName ="OFFICE";
+    private String bluetoothDeviceName ="BTCOM";
     private TextView txtIP;
     private BluetoothStateReceiver bluetoothStateReceiver;
+    private UDP.UDPListener udpListener;
+    private int connect_type = CONNECT_UDP;
+    private static final int CONNECT_TCP = 1;
+    private static final int CONNECT_UDP = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,11 +87,26 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
 
             @Override
             public void onConnected(BluetoothSocket socket) {
-//                try {
-//                    new ConnectThread(socket.getInputStream(),tcp.getOutputStream()).start();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+                if(connect_type==CONNECT_UDP) {
+                    try {
+                        ConnectThread tcpThread = new ConnectThread(udp.getInputStream(), socket.getOutputStream());
+                        tcpThread.setListener(new ConnectThread.ConnectThreadListener() {
+                            @Override
+                            public void onReceive(final String data) {
+                                bt.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        txtData.setText(data);
+                                    }
+                                });
+                            }
+                        });
+                        tcpThread.start();
+                        new ConnectThread(socket.getInputStream(), udp.getOutputStream()).start();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         };
 
@@ -114,11 +136,28 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             }
         };
 
+        udpListener = new UDP.UDPListener(){
+            @Override
+            public void onConnected(InputStream inputStream, OutputStream outputStream) {
+
+            }
+        };
+
         bluetooth = new Bluetooth(this,bluetoothListener);
         bluetooth.connect(bluetoothDeviceName);
 
-        tcp = new TCP(tcpListener);
-        tcp.startServer(port,tcpListener);
+        tcp = new TCP();
+        udp = new UDP();
+
+        if(connect_type == CONNECT_TCP)
+        {
+            tcp.startServer(port,tcpListener);
+        }
+        else if(connect_type == CONNECT_UDP)
+        {
+            udp.startServer(port,udpListener);
+        }
+
         wakeLock.acquire();
     }
 
