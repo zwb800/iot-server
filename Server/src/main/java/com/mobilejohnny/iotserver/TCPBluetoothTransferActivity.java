@@ -37,7 +37,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private TextView txtBluetooth;
     private TextView txtData;
     private int port = 8080;
-    private String bluetoothDeviceName ="BTCOM";
+    private String bluetoothDeviceName ="OFFICE";
     private TextView txtIP;
     private BluetoothStateReceiver bluetoothStateReceiver;
     private UDP.UDPListener udpListener;
