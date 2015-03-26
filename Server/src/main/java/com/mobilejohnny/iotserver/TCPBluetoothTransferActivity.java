@@ -2,15 +2,13 @@ package com.mobilejohnny.iotserver;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +30,6 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private UDP udp;
     private Bluetooth.BluetoothListener bluetoothListener;
     private TCP.TCPListener tcpListener;
-    private View decorView;
     private PowerManager.WakeLock wakeLock;
     private TextView txtBluetooth;
     private TextView txtData;
@@ -44,19 +41,24 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private int connect_type = CONNECT_UDP;
     private static final int CONNECT_TCP = 1;
     private static final int CONNECT_UDP = 2;
+    private StringBuffer stringBuffer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tcpbluetoothtransfer);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        connect_type = Integer.parseInt(preferences.getString("connection_type",CONNECT_TCP+""));
+        port = Integer.parseInt(preferences.getString("port","0"));
+
+        bluetoothDeviceName = preferences.getString("device_name","BTCOM");
+        stringBuffer = new StringBuffer(100);
+
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
 
 
         wakeLock =  powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"TCP_BT");
-
-        decorView = getWindow().getDecorView();
-
 
         txtData = (TextView)findViewById(R.id.txt_data);
         txtBluetooth = (TextView) findViewById(R.id.txt_bluetooth);
@@ -85,6 +87,8 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                 });
             }
 
+
+
             @Override
             public void onConnected(BluetoothSocket socket) {
                 if(connect_type==CONNECT_UDP) {
@@ -92,11 +96,19 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                         ConnectThread tcpThread = new ConnectThread(udp.getInputStream(), socket.getOutputStream());
                         tcpThread.setListener(new ConnectThread.ConnectThreadListener() {
                             @Override
-                            public void onReceive(final String data) {
+                            public void onReceive(final byte[] data) {
+                                stringBuffer.delete(0,stringBuffer.length());
+                                for (int i=0;i<data.length;i++)
+                                {
+                                    stringBuffer.append(data[i]);
+                                    stringBuffer.append(" ");
+                                }
+                                final String str = stringBuffer.toString();
+
                                 bt.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        txtData.setText(data);
+                                        txtData.setText(str);
                                     }
                                 });
                             }
@@ -119,11 +131,20 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                     ConnectThread tcpThread = new ConnectThread(socket.getInputStream(),bluetooth.getOutputStream());
                     tcpThread.setListener(new ConnectThread.ConnectThreadListener() {
                         @Override
-                        public void onReceive(final String data) {
+                        public void onReceive(final byte[] data) {
+                            stringBuffer.delete(0,stringBuffer.length());
+                            for (int i=0;i<data.length;i++)
+                            {
+                                stringBuffer.append(data[i]);
+                                stringBuffer.append(" ");
+                            }
+                            final String str = stringBuffer.toString();
+
                             bt.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    txtData.setText(data);
+
+                                    txtData.setText(str);
                                 }
                             });
                         }
@@ -198,6 +219,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            startActivity(new Intent("com.mobilejohnny.iotserver.action.Settings"));
             return true;
         }
         else if (id == R.id.action_exit) {

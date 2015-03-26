@@ -40,8 +40,13 @@ public class ConnectThread extends Thread {
 
                     if(listener!=null)
                     {
-                        String str = new String(buffer,0,len);
-                        listener.onReceive(str);
+//                        String str = new String(buffer,0,len);
+                        byte[] out = new byte[len];
+                        for (int i=0;i<len;i++)
+                        {
+                            out[i] = buffer[i];
+                        }
+                        listener.onReceive(out);
                     }
                 }
             } catch (IOException e) {
@@ -51,6 +56,6 @@ public class ConnectThread extends Thread {
     }
 
     public interface ConnectThreadListener{
-        void onReceive(String data);
+        void onReceive(byte[] data);
     }
 }

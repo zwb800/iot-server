@@ -197,12 +197,10 @@ public class Bluetooth {
             return true;
 
         try {
-            int sdk = Build.VERSION.SDK_INT;
-            if(sdk >= Build.VERSION_CODES.HONEYCOMB){
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
                 //sdk 2.3以上需要用此方法连接，否则连接不上，会报 java.io.IOException: Connection refused 异常
                 socket = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
             }else {
-//                socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
                 socket = (BluetoothSocket)device.getClass()
                         .getMethod("createRfcommSocket",new Class[] { int.class })
                         .invoke(device, 1);
