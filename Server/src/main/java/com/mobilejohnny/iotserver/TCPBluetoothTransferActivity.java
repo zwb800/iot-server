@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,7 +33,6 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private TCP.TCPListener tcpListener;
     private PowerManager.WakeLock wakeLock;
     private TextView txtBluetooth;
-    private TextView txtData;
     private int port = 8080;
     private String bluetoothDeviceName ="OFFICE";
     private TextView txtIP;
@@ -41,7 +41,10 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private int connect_type = CONNECT_UDP;
     private static final int CONNECT_TCP = 1;
     private static final int CONNECT_UDP = 2;
-    private StringBuffer stringBuffer;
+    private TextView txtRX;
+    private TextView txtTX;
+    private boolean show_rxtx = true;
+    private ScreenReceiver screenReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,34 +55,62 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         port = Integer.parseInt(preferences.getString("port","0"));
 
         bluetoothDeviceName = preferences.getString("device_name","BTCOM");
-        stringBuffer = new StringBuffer(100);
 
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
 
-
         wakeLock =  powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"TCP_BT");
 
-        txtData = (TextView)findViewById(R.id.txt_data);
+        txtRX = (TextView)findViewById(R.id.txt_rx);
+        txtTX = (TextView)findViewById(R.id.txt_tx);
         txtBluetooth = (TextView) findViewById(R.id.txt_bluetooth);
         txtIP = (TextView)findViewById(R.id.txt_ip);
 
         int ip = wifiManager.getDhcpInfo().ipAddress;
         txtIP.setText(getIPString(ip)+":"+port);
 
-        bluetoothStateReceiver = new BluetoothStateReceiver();
+        registerReceiver();
 
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        registerReceiver(bluetoothStateReceiver,intentFilter);
+        final Handler handler =  new Handler();
 
-        final Handler bt =  new Handler();
+        final ConnectThread.ConnectThreadListener connectTxThreadListener = new ConnectThread.ConnectThreadListener() {
+            @Override
+            public void onReceive(final byte[] data) {
+                if(show_rxtx) {
+                    final String str = convertToString(data);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            txtTX.setText(str);
+                        }
+                    });
+                }
+            }
+        };
+
+        final ConnectThread.ConnectThreadListener connectRxThreadListener = new ConnectThread.ConnectThreadListener() {
+            @Override
+            public void onReceive(final byte[] data) {
+                if(show_rxtx)
+                {
+                    final String str = convertToString(data);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            txtRX.setText(str);
+                        }
+                    });
+                }
+
+            }
+        };
 
         bluetoothListener = new Bluetooth.BluetoothListener(){
 
             @Override
             public void result(final int result) {
                 final String msg = result == Bluetooth.RESULT_SUCCESS ? "已连接" : "连接失败";
-                bt.post(new Runnable() {
+                handler.post(new Runnable() {
                     @Override
                     public void run() {
                         txtBluetooth.setText( bluetoothDeviceName+" "+msg);
@@ -87,34 +118,16 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                 });
             }
 
-
-
             @Override
             public void onConnected(BluetoothSocket socket) {
                 if(connect_type==CONNECT_UDP) {
                     try {
-                        ConnectThread tcpThread = new ConnectThread(udp.getInputStream(), socket.getOutputStream());
-                        tcpThread.setListener(new ConnectThread.ConnectThreadListener() {
-                            @Override
-                            public void onReceive(final byte[] data) {
-                                stringBuffer.delete(0,stringBuffer.length());
-                                for (int i=0;i<data.length;i++)
-                                {
-                                    stringBuffer.append(data[i]);
-                                    stringBuffer.append(" ");
-                                }
-                                final String str = stringBuffer.toString();
-
-                                bt.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        txtData.setText(str);
-                                    }
-                                });
-                            }
-                        });
-                        tcpThread.start();
-                        new ConnectThread(socket.getInputStream(), udp.getOutputStream()).start();
+                        ConnectThread udpThread = new ConnectThread(udp.getInputStream(), socket.getOutputStream());
+                        udpThread.setListener(connectRxThreadListener);
+                        udpThread.start();
+                        ConnectThread btThread =  new ConnectThread(socket.getInputStream(), udp.getOutputStream());
+                        btThread.setListener(connectTxThreadListener);
+                        btThread.start();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -123,34 +136,15 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         };
 
         tcpListener = new TCP.TCPListener() {
-
             @Override
             public void onConnected(Socket socket) {
-
                 try {
                     ConnectThread tcpThread = new ConnectThread(socket.getInputStream(),bluetooth.getOutputStream());
-                    tcpThread.setListener(new ConnectThread.ConnectThreadListener() {
-                        @Override
-                        public void onReceive(final byte[] data) {
-                            stringBuffer.delete(0,stringBuffer.length());
-                            for (int i=0;i<data.length;i++)
-                            {
-                                stringBuffer.append(data[i]);
-                                stringBuffer.append(" ");
-                            }
-                            final String str = stringBuffer.toString();
-
-                            bt.post(new Runnable() {
-                                @Override
-                                public void run() {
-
-                                    txtData.setText(str);
-                                }
-                            });
-                        }
-                    });
+                    tcpThread.setListener(connectRxThreadListener);
                     tcpThread.start();
-                    new ConnectThread(bluetooth.getInputStream(),socket.getOutputStream()).start();
+                    ConnectThread btThread = new ConnectThread(bluetooth.getInputStream(),socket.getOutputStream());
+                    btThread.setListener(connectTxThreadListener);
+                    btThread.start();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -182,6 +176,29 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         wakeLock.acquire();
     }
 
+    private void registerReceiver() {
+        bluetoothStateReceiver = new BluetoothStateReceiver();
+
+        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(bluetoothStateReceiver, intentFilter);
+
+        screenReceiver = new ScreenReceiver();
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(screenReceiver, intentFilter);
+    }
+
+    private String convertToString(byte[] data) {
+        StringBuffer stringBuffer = new StringBuffer(data.length*2);
+        for (int i=0;i<data.length;i++)
+        {
+            stringBuffer.append(data[i]);
+            stringBuffer.append(" ");
+        }
+        return stringBuffer.toString();
+    }
+
     private String getIPString(int ip) {
         return String.format(
                     "%d.%d.%d.%d",
@@ -196,6 +213,8 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     protected void onDestroy() {
 
         unregisterReceiver(bluetoothStateReceiver);
+        unregisterReceiver(screenReceiver);
+
         tcp.close();
         bluetooth.close();
         wakeLock.release();
@@ -210,7 +229,6 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -252,8 +270,24 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                 if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF)==
                         BluetoothAdapter.STATE_ON)
                 bluetooth.connect(bluetoothDeviceName);
-
             }
+        }
+    }
+
+    public class ScreenReceiver extends BroadcastReceiver
+    {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
+            {
+                show_rxtx = false;
+            }
+            else if(intent.getAction().equals(Intent.ACTION_SCREEN_ON))
+            {
+                show_rxtx = true;
+            }
+
+            Log.i("TCP-BT","show_rxtx:"+show_rxtx);
         }
     }
 

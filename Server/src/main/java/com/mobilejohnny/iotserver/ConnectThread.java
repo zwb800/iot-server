@@ -40,7 +40,6 @@ public class ConnectThread extends Thread {
 
                     if(listener!=null)
                     {
-//                        String str = new String(buffer,0,len);
                         byte[] out = new byte[len];
                         for (int i=0;i<len;i++)
                         {

@@ -68,24 +68,22 @@ public class Bluetooth {
         }
         else if(device!=null){
             Log.i("BT","已找到绑定设备");
-            new AsyncTask<Void,Void,Void> (){
-
+            new Thread(new Runnable() {
                 @Override
-                protected Void doInBackground(Void... voids) {
+                public void run() {
                     int result = RESULT_FAILD;
                     if(createSocket()) {
                         if(connectSocket()){
 //                            if(startReceiveThread())
 //                            {
-                                result = RESULT_SUCCESS;
+                            result = RESULT_SUCCESS;
 //                            }
 
                         }
                     }
                     listener.result(result);
-                    return null;
                 }
-            }.execute();
+            }).start();
         }
         else
         {
