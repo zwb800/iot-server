@@ -7,5 +7,7 @@
     <string name="title_activity_gcm">GCM</string>
     <string name="exit">退出</string>
     <string name="tcp_bluetooth_transfer">TCP转发蓝牙</string>
+    <string name="title_activity_camera">CameraActivity</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>
