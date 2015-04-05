@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.Context;
 import android.os.IBinder;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
@@ -72,12 +75,12 @@ public class BluetoothService extends Service {
 //                Toast.makeText(BluetoothService.this,result==Bluetooth.RESULT_SUCCESS?"成功":"失败",Toast.LENGTH_SHORT).show();
             }
 
-
-
             @Override
-            public void onConnected(BluetoothSocket socket) {
+            public void onConnected(InputStream inputStream, OutputStream outputStream) {
 
             }
+
+
         });
     }
 

@@ -29,15 +29,15 @@ public class ConnectThread extends Thread {
     @Override
     public void run() {
         super.run();
-        while (!Thread.currentThread().isInterrupted())
-        {
-            int len = -1;
-            try {
-                byte[] buffer = new byte[1024*8];
+        try {
+            while (!Thread.currentThread().isInterrupted())
+            {
+                int len = -1;
+
+                byte[] buffer = new byte[64];
                 while((len = inputStream.read(buffer))!=-1)
                 {
                     outputStream.write(buffer,0,len);
-
                     if(listener!=null)
                     {
                         byte[] out = new byte[len];
@@ -48,9 +48,10 @@ public class ConnectThread extends Thread {
                         listener.onReceive(out);
                     }
                 }
-            } catch (IOException e) {
-               e.printStackTrace();
             }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

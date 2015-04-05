@@ -16,6 +16,7 @@ public class UDP {
 
     private OutputStream outputStream;
     private InputStream inputStream;
+    private DatagramSocket datagramSocket;
 
     public UDP()
     {
@@ -35,7 +36,7 @@ public class UDP {
     public boolean startServer(int port,UDPListener listener)
     {
         try {
-            final DatagramSocket datagramSocket = new DatagramSocket(port);
+            datagramSocket = new DatagramSocket(port);
 
             inputStream = new InputStream() {
                 byte[] buffer = new byte[1024];
@@ -80,6 +81,13 @@ public class UDP {
         }
 
         return  false;
+    }
+
+    public void close()
+    {
+        if(datagramSocket!=null)
+        datagramSocket.close();
+
     }
 
     public interface UDPListener{

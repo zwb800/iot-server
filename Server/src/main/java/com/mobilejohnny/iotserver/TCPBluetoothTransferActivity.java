@@ -30,7 +30,6 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private TCP tcp;
     private UDP udp;
     private Bluetooth.BluetoothListener bluetoothListener;
-    private TCP.TCPListener tcpListener;
     private PowerManager.WakeLock wakeLock;
     private TextView txtBluetooth;
     private int port = 8080;
@@ -119,30 +118,43 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             }
 
             @Override
-            public void onConnected(BluetoothSocket socket) {
-                if(connect_type==CONNECT_UDP) {
-                    try {
-                        ConnectThread udpThread = new ConnectThread(udp.getInputStream(), socket.getOutputStream());
-                        udpThread.setListener(connectRxThreadListener);
-                        udpThread.start();
-                        ConnectThread btThread =  new ConnectThread(socket.getInputStream(), udp.getOutputStream());
-                        btThread.setListener(connectTxThreadListener);
-                        btThread.start();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            public void onConnected(InputStream inputStream,OutputStream outputStream) {
+
+                if(connect_type == CONNECT_TCP)
+                {
+                    tcp.startServer(port,udpListener);
+                }
+                else if(connect_type == CONNECT_UDP)
+                {
+                    udp.startServer(port,udpListener);
                 }
             }
         };
 
-        tcpListener = new TCP.TCPListener() {
+//        tcpListener = new TCP.TCPListener() {
+//            @Override
+//            public void onConnected(Socket socket) {
+//                try {
+//                    ConnectThread tcpThread = new ConnectThread(socket.getInputStream(),bluetooth.getOutputStream());
+//                    tcpThread.setListener(connectRxThreadListener);
+//                    tcpThread.start();
+//                    ConnectThread btThread = new ConnectThread(bluetooth.getInputStream(),socket.getOutputStream());
+//                    btThread.setListener(connectTxThreadListener);
+//                    btThread.start();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
+
+        udpListener = new UDP.UDPListener(){
             @Override
-            public void onConnected(Socket socket) {
+            public void onConnected(InputStream inputStream, OutputStream outputStream) {
                 try {
-                    ConnectThread tcpThread = new ConnectThread(socket.getInputStream(),bluetooth.getOutputStream());
-                    tcpThread.setListener(connectRxThreadListener);
-                    tcpThread.start();
-                    ConnectThread btThread = new ConnectThread(bluetooth.getInputStream(),socket.getOutputStream());
+                    ConnectThread udpThread = new ConnectThread(inputStream, bluetooth.getOutputStream());
+                    udpThread.setListener(connectRxThreadListener);
+                    udpThread.start();
+                    ConnectThread btThread =  new ConnectThread(bluetooth.getInputStream(),outputStream);
                     btThread.setListener(connectTxThreadListener);
                     btThread.start();
                 } catch (IOException e) {
@@ -151,27 +163,10 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             }
         };
 
-        udpListener = new UDP.UDPListener(){
-            @Override
-            public void onConnected(InputStream inputStream, OutputStream outputStream) {
-
-            }
-        };
-
-        bluetooth = new Bluetooth(this,bluetoothListener);
-        bluetooth.connect(bluetoothDeviceName);
-
         tcp = new TCP();
         udp = new UDP();
-
-        if(connect_type == CONNECT_TCP)
-        {
-            tcp.startServer(port,tcpListener);
-        }
-        else if(connect_type == CONNECT_UDP)
-        {
-            udp.startServer(port,udpListener);
-        }
+        bluetooth = new Bluetooth(this,bluetoothListener);
+        bluetooth.connect(bluetoothDeviceName);
 
         wakeLock.acquire();
     }
@@ -216,6 +211,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         unregisterReceiver(screenReceiver);
 
         tcp.close();
+        udp.close();
         bluetooth.close();
         wakeLock.release();
 

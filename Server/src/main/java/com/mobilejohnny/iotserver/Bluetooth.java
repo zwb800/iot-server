@@ -82,6 +82,13 @@ public class Bluetooth {
                         }
                     }
                     listener.result(result);
+                    if(result==RESULT_SUCCESS) {
+                        try {
+                            listener.onConnected(socket.getInputStream(),socket.getOutputStream());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }).start();
         }
@@ -92,64 +99,9 @@ public class Bluetooth {
         }
     }
 
-    private boolean startReceiveThread() {
-        boolean success = false;
-        try {
-            final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (!Thread.currentThread().isInterrupted())
-                    {
-                        char[] buffer = new char[1024*8];
-                        int len = -1;
-                        try {
-                            while((len = bufferedReader.read(buffer))!=-1)
-                            {
-//                                listener.onReceive(new String(buffer,0,len));
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }).start();
-            success = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        return success;
-    }
-
-    public OutputStream getOutputStream()
-    {
-        OutputStream out = null;
-        if(socket!=null)
-        {
-            int result = RESULT_FAILD;
-            if (createSocket()&&connectSocket()) {
-                try {
-                    out = socket.getOutputStream();
-
-                    result = RESULT_SUCCESS;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if(listener!=null){
-                listener.result(result);
-            }
-
-        }
-        else
-        {
-            listener.result(RESULT_FAILD);
-            Log.e("BT","发送失败");
-        }
-
-        return  out;
+    public OutputStream getOutputStream() throws IOException {
+       return  socket.getOutputStream();
     }
 
     public void send(final String data)
@@ -237,7 +189,6 @@ public class Bluetooth {
         try {
             Log.i("BT", "开始连接");
             socket.connect();
-            listener.onConnected(socket);
             Log.i("BT","已连接");
             connected = true;
         } catch (Exception e) {
@@ -320,7 +271,8 @@ public class Bluetooth {
     public interface BluetoothListener {
         public void result(int result);
 
-        void onConnected(BluetoothSocket socket);
+
+        void onConnected(InputStream inputStream,OutputStream outputStream);
     }
 
 }

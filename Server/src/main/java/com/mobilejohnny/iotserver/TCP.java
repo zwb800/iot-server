@@ -12,7 +12,6 @@ import java.net.SocketAddress;
  */
 public class TCP {
 
-    private TCPListener listener;
     private OutputStream output;
     private Socket socket;
     private ServerSocket serverSocket;
@@ -46,7 +45,7 @@ public class TCP {
         return outputStream;
     }
 
-    public boolean startServer(int port, final TCPListener listener)
+    public boolean startServer(int port, final UDP.UDPListener listener)
     {
         boolean result = false;
         try {
@@ -59,7 +58,7 @@ public class TCP {
                         while(!Thread.currentThread().isInterrupted()){
 
                             socket = serverSocket.accept();
-                            listener.onConnected(socket);
+                            listener.onConnected(socket.getInputStream(),socket.getOutputStream());
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -89,11 +88,4 @@ public class TCP {
 
     }
 
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public interface TCPListener{
-        void onConnected(Socket socket);
-    }
 }
