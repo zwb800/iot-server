@@ -9,5 +9,6 @@
     <string name="tcp_bluetooth_transfer">TCP转发蓝牙</string>
     <string name="title_activity_camera">CameraActivity</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_usb_host">UsbHostActivity</string>
 
 </resources>

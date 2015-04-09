@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mobilejohnny.iotserver" >
-
+    <uses-feature android:name="android.hardware.usb.host"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -50,7 +50,8 @@
             android:label="@string/tcp_bluetooth_transfer"
             android:theme="@style/AppTheme" >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -59,18 +60,31 @@
             android:label="Settings" >
             <intent-filter>
                 <action android:name="com.mobilejohnny.iotserver.action.Settings" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <!--<activity-->
-            <!--android:name=".CameraActivity"-->
-            <!--android:theme="@style/AppTheme"-->
-            <!--android:label="@string/title_activity_camera" >-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
-        <!--</activity>-->
+        <activity
+                android:name=".UsbHostActivity"
+                android:label="@string/title_activity_usb_host"
+                android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                       android:resource="@xml/device_filter"/>
+        </activity>
+        <!-- <activity -->
+        <!-- android:name=".CameraActivity" -->
+        <!-- android:theme="@style/AppTheme" -->
+        <!-- android:label="@string/title_activity_camera" > -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.MAIN" /> -->
+        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+        <!-- </intent-filter> -->
+        <!-- </activity> -->
 
         <receiver
             android:name=".GcmReceiver"
