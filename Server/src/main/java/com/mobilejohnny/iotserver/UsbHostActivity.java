@@ -5,8 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
+import android.hardware.usb.*;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,9 +20,7 @@ public class UsbHostActivity extends ActionBarActivity {
     public  static  final String USB_PERMISSION = "com.mobilejohnny.iotserver.USB_PERMISSION";
     private UsbBroadcastReceiver usbReceiver;
     private UsbManager manager;
-    private UsbDevice device;
-    private int bcdDevice = 1;//FT232RL
-    private int numOfChannels = 6;
+    private FDTI fdti;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +32,7 @@ public class UsbHostActivity extends ActionBarActivity {
         registerReceiver( usbReceiver,new IntentFilter(USB_PERMISSION));
 
         manager = (UsbManager) getSystemService(USB_SERVICE);
+
         HashMap<String, UsbDevice> deviceSet =  manager.getDeviceList();
         Log.i(getClass().getSimpleName(),"开始检测USB设备");
         for (UsbDevice device:deviceSet.values())
@@ -47,25 +45,21 @@ public class UsbHostActivity extends ActionBarActivity {
             }
             else
             {
-                this.device = device;
-                begin();
+                fdti = new FDTI(manager,device);
+                fdti.begin();
             }
         }
-    }
-
-    private void begin() {
-
     }
 
     @Override
     protected void onDestroy() {
         unregisterReceiver(usbReceiver);
+        fdti.close();
         super.onDestroy();
     }
 
     private class UsbBroadcastReceiver extends BroadcastReceiver
     {
-
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(USB_PERMISSION))
@@ -78,8 +72,8 @@ public class UsbHostActivity extends ActionBarActivity {
                     {
                         if(device!=null)
                         {
-                            UsbHostActivity.this.device = device;
-                            begin();
+                            fdti = new FDTI(manager,device);
+                            fdti.begin();
                         }
                     }
                     else
