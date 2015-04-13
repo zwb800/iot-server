@@ -1,8 +1,11 @@
 package com.mobilejohnny.iotserver;
 
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
 import android.content.*;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,11 +24,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.HashMap;
 
 /**
  * Created by admin2 on 2015/3/20.
  */
 public class TCPBluetoothTransferActivity extends ActionBarActivity {
+    private static InputStream inputStream;
+    private static OutputStream outputStream;
     private Bluetooth bluetooth;
     private TCP tcp;
     private UDP udp;
@@ -35,35 +41,45 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private int port = 8080;
     private String bluetoothDeviceName ="OFFICE";
     private TextView txtIP;
-    private BluetoothStateReceiver bluetoothStateReceiver;
+    private Receiver receiver;
     private UDP.UDPListener udpListener;
-    private int connect_type = CONNECT_UDP;
-    private static final int CONNECT_TCP = 1;
-    private static final int CONNECT_UDP = 2;
+    private String connection_type = CONNECT_UDP;
+    private static final String CONNECT_TCP = "TCP";
+    private static final String CONNECT_UDP = "UDP";
     private TextView txtRX;
     private TextView txtTX;
     private boolean show_rxtx = true;
-    private ScreenReceiver screenReceiver;
+    private UsbManager usbManager;
+    private FDTI fdti;
+    private String dest_type = DEST_BLUETOOTH;
+    private static final String DEST_BLUETOOTH = "Bluetooth";
+    private static final String DEST_USBOTG = "USB-OTG";
+    private TextView txtDestType;
+    private TextView txtConnectType;
+    private TextView labelBluetooth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tcpbluetoothtransfer);
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        connect_type = Integer.parseInt(preferences.getString("connection_type",CONNECT_TCP+""));
-        port = Integer.parseInt(preferences.getString("port","0"));
-
-        bluetoothDeviceName = preferences.getString("device_name","BTCOM");
+        readPreference();
 
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        usbManager = (UsbManager) getSystemService(USB_SERVICE);
 
         wakeLock =  powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"TCP_BT");
 
         txtRX = (TextView)findViewById(R.id.txt_rx);
         txtTX = (TextView)findViewById(R.id.txt_tx);
+        txtConnectType = (TextView)findViewById(R.id.txt_connection_type);
+        txtDestType = (TextView)findViewById(R.id.txt_dest_type);
+        labelBluetooth = (TextView)findViewById(R.id.label_bluetooth);
         txtBluetooth = (TextView) findViewById(R.id.txt_bluetooth);
         txtIP = (TextView)findViewById(R.id.txt_ip);
+
+        txtConnectType.setText(connection_type);
+        txtDestType.setText(dest_type);
 
         int ip = wifiManager.getDhcpInfo().ipAddress;
         txtIP.setText(getIPString(ip)+":"+port);
@@ -100,7 +116,6 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                         }
                     });
                 }
-
             }
         };
 
@@ -119,69 +134,94 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
 
             @Override
             public void onConnected(InputStream inputStream,OutputStream outputStream) {
-
-                if(connect_type == CONNECT_TCP)
+                TCPBluetoothTransferActivity.inputStream = inputStream;
+                TCPBluetoothTransferActivity.outputStream = outputStream;
+                if(connection_type.equals(CONNECT_TCP))
                 {
                     tcp.startServer(port,udpListener);
                 }
-                else if(connect_type == CONNECT_UDP)
+                else if(connection_type.equals(CONNECT_UDP))
                 {
                     udp.startServer(port,udpListener);
                 }
             }
         };
 
-//        tcpListener = new TCP.TCPListener() {
-//            @Override
-//            public void onConnected(Socket socket) {
-//                try {
-//                    ConnectThread tcpThread = new ConnectThread(socket.getInputStream(),bluetooth.getOutputStream());
-//                    tcpThread.setListener(connectRxThreadListener);
-//                    tcpThread.start();
-//                    ConnectThread btThread = new ConnectThread(bluetooth.getInputStream(),socket.getOutputStream());
-//                    btThread.setListener(connectTxThreadListener);
-//                    btThread.start();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-
         udpListener = new UDP.UDPListener(){
             @Override
             public void onConnected(InputStream inputStream, OutputStream outputStream) {
-                try {
-                    ConnectThread udpThread = new ConnectThread(inputStream, bluetooth.getOutputStream());
-                    udpThread.setListener(connectRxThreadListener);
-                    udpThread.start();
-                    ConnectThread btThread =  new ConnectThread(bluetooth.getInputStream(),outputStream);
-                    btThread.setListener(connectTxThreadListener);
-                    btThread.start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            ConnectThread udpThread = new ConnectThread(inputStream, TCPBluetoothTransferActivity.outputStream);
+            udpThread.setListener(connectRxThreadListener);
+            udpThread.start();
+            ConnectThread btThread =  new ConnectThread(TCPBluetoothTransferActivity.inputStream,outputStream);
+            btThread.setListener(connectTxThreadListener);
+            btThread.start();
             }
         };
 
-        tcp = new TCP();
-        udp = new UDP();
-        bluetooth = new Bluetooth(this,bluetoothListener);
-        bluetooth.connect(bluetoothDeviceName);
+        if(connection_type.equals(CONNECT_TCP))
+        {
+            tcp = new TCP();
+        }
+        else
+        {
+            udp = new UDP();
+        }
+
+        if(dest_type.equals( DEST_BLUETOOTH))
+        {
+            bluetooth = new Bluetooth(this,bluetoothListener);
+            bluetooth.connect(bluetoothDeviceName);
+        }
+        else
+        {
+            fdti = new FDTI(usbManager);
+            fdti.setListener(bluetoothListener);
+            connectUsb();
+
+            labelBluetooth.setVisibility(View.GONE);
+            txtBluetooth.setVisibility(View.GONE);
+        }
 
         wakeLock.acquire();
     }
 
+    private void readPreference() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        connection_type = preferences.getString("connection_type",CONNECT_TCP);
+        dest_type = preferences.getString("destination_type",DEST_BLUETOOTH);
+        port = Integer.parseInt(preferences.getString("port", "0"));
+        bluetoothDeviceName = preferences.getString("device_name","BTCOM");
+    }
+
+    private void connectUsb()
+    {
+        HashMap<String, UsbDevice> deviceSet =  usbManager.getDeviceList();
+        Log.i(getClass().getSimpleName(),"开始检测USB设备");
+        for (UsbDevice device:deviceSet.values())
+        {
+
+            if(usbManager.hasPermission(device))
+            {
+                fdti.begin(device);
+            }
+            else
+            {
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this,0,new Intent(UsbHostActivity.USB_PERMISSION),0);
+                usbManager.requestPermission(device,pendingIntent);
+            }
+        }
+    }
+
     private void registerReceiver() {
-        bluetoothStateReceiver = new BluetoothStateReceiver();
-
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        registerReceiver(bluetoothStateReceiver, intentFilter);
-
-        screenReceiver = new ScreenReceiver();
-        intentFilter = new IntentFilter();
+        receiver = new Receiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        intentFilter.addAction(UsbHostActivity.USB_PERMISSION);
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-        registerReceiver(screenReceiver, intentFilter);
+
+        registerReceiver(receiver, intentFilter);
     }
 
     private String convertToString(byte[] data) {
@@ -206,13 +246,15 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
 
     @Override
     protected void onDestroy() {
+        unregisterReceiver(receiver);
 
-        unregisterReceiver(bluetoothStateReceiver);
-        unregisterReceiver(screenReceiver);
+        if(tcp!=null)
+            tcp.close();
+        if(udp!=null)
+            udp.close();
+        if(bluetooth!=null)
+            bluetooth.close();
 
-        tcp.close();
-        udp.close();
-        bluetooth.close();
         wakeLock.release();
 
         super.onDestroy();
@@ -221,16 +263,12 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             startActivity(new Intent("com.mobilejohnny.iotserver.action.Settings"));
@@ -253,11 +291,10 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             {
 
             }
-
         }
     }
 
-    public class BluetoothStateReceiver extends BroadcastReceiver
+    public class Receiver extends BroadcastReceiver
     {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -267,14 +304,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                         BluetoothAdapter.STATE_ON)
                 bluetooth.connect(bluetoothDeviceName);
             }
-        }
-    }
-
-    public class ScreenReceiver extends BroadcastReceiver
-    {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
+            else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
             {
                 show_rxtx = false;
             }
@@ -282,9 +312,27 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             {
                 show_rxtx = true;
             }
+            else if(intent.getAction().equals(UsbHostActivity.USB_PERMISSION))
+            {
+                synchronized (this)
+                {
+                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-            Log.i("TCP-BT","show_rxtx:"+show_rxtx);
+                    if(intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,false))
+                    {
+                        if(device!=null)
+                        {
+                            fdti.begin(device);
+                        }
+                    }
+                    else
+                    {
+                        Log.i(this.getClass().getSimpleName(),"Permission Denied");
+                    }
+                }
+            }
         }
     }
+
 
 }

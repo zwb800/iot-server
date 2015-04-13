@@ -42,8 +42,36 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="IP:"
+            android:text="服务端协议:"
             androidcompat:layout_row="2"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TCP"
+            android:id="@+id/txt_connection_type"
+            androidcompat:layout_row="2"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="目标:"
+            androidcompat:layout_row="3"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bluetooth"
+            android:id="@+id/txt_dest_type"
+            androidcompat:layout_row="3"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IP:"
+            androidcompat:layout_row="4"
             androidcompat:layout_column="0"
             android:textStyle="bold"/>
        <TextView
@@ -51,15 +79,15 @@
             android:layout_height="wrap_content"
             android:text=""
             android:id="@+id/txt_ip"
-            androidcompat:layout_row="2"
+            androidcompat:layout_row="4"
             androidcompat:layout_column="1"/>
 
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="蓝牙:"
-            android:id="@+id/textView5"
-            androidcompat:layout_row="3"
+            android:id="@+id/label_bluetooth"
+            androidcompat:layout_row="5"
             androidcompat:layout_column="0"
             android:textStyle="bold"/>
     <TextView
@@ -67,6 +95,7 @@
             android:layout_height="wrap_content"
             android:text="未连接"
             android:id="@+id/txt_bluetooth"
-            androidcompat:layout_row="3"
+            androidcompat:layout_row="5"
         androidcompat:layout_column="1"/>
+
 </android.support.v7.widget.GridLayout>

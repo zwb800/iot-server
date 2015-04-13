@@ -1,13 +1,12 @@
 package com.mobilejohnny.iotserver;
 
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.*;
 
 /**
  * Created by zwb08_000 on 2015/3/21.
@@ -17,7 +16,10 @@ public class UDP {
     private OutputStream outputStream;
     private InputStream inputStream;
     private DatagramSocket datagramSocket;
-
+    private InetAddress address;
+    private int port;
+    byte[] buffer = new byte[1024];
+    DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length);
     public UDP()
     {
 
@@ -36,25 +38,32 @@ public class UDP {
     public boolean startServer(int port,UDPListener listener)
     {
         try {
+            this.port = port;
             datagramSocket = new DatagramSocket(port);
 
             inputStream = new InputStream() {
-                byte[] buffer = new byte[1024];
-                int len = -1;
+                int len = 0;
                 int i = 0;
-                final DatagramPacket datagramPacket = new DatagramPacket(buffer,1024);
                 @Override
                 public int read() throws IOException {
-                    if(len==-1)
+                    if(len==0)
                     {
-                        datagramSocket.receive(datagramPacket);
-                        len = datagramPacket.getLength();
+                        try {
+                            while((len = receive())<=0)
+                            {
+                                Thread.sleep(1);
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    else if(len==i)
+
+                    if(i==len)
                     {
-                        len = -1;
-                        i=0;
-                        return  len;
+                        len = 0;
+                        i = 0;
+
+                        return  -1;
                     }
 
                     return buffer[i++];
@@ -62,13 +71,14 @@ public class UDP {
             };
 
             outputStream = new OutputStream() {
+                byte[] buffer = new byte[1];
                 @Override
                 public void write(int i) throws IOException {
-                    byte[] buffer = new byte[1];
-                    DatagramPacket datagramPacket = new DatagramPacket(buffer,1);
                     buffer[0] = (byte) i;
-                    datagramSocket.send(datagramPacket);
+                    send(buffer,1);
                 }
+
+
             };
 
             listener.onConnected(inputStream,outputStream);
@@ -76,11 +86,22 @@ public class UDP {
 
         } catch (SocketException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return  false;
+    }
+
+    private int receive() throws IOException {
+        synchronized (this) {
+            datagramSocket.receive(datagramPacket);
+            address = datagramPacket.getAddress();
+            return datagramPacket.getLength();
+        }
+    }
+
+    private void send(byte[] buffer,int length) throws IOException {
+        DatagramPacket datagramPacket = new DatagramPacket(buffer, 0, length,address,port);
+        datagramSocket.send(datagramPacket);
     }
 
     public void close()

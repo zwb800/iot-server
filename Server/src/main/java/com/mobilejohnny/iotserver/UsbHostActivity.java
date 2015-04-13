@@ -12,6 +12,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 
 
@@ -21,6 +24,8 @@ public class UsbHostActivity extends ActionBarActivity {
     private UsbBroadcastReceiver usbReceiver;
     private UsbManager manager;
     private FDTI fdti;
+    private OutputStream outputStream;
+    private InputStream inputStream;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +37,27 @@ public class UsbHostActivity extends ActionBarActivity {
         registerReceiver( usbReceiver,new IntentFilter(USB_PERMISSION));
 
         manager = (UsbManager) getSystemService(USB_SERVICE);
+        fdti = new FDTI(manager);
+        fdti.setListener(new Bluetooth.BluetoothListener() {
+            @Override
+            public void result(int result) {
+
+            }
+
+            @Override
+            public void onConnected(InputStream inputStream, OutputStream outputStream) {
+                UsbHostActivity.this.inputStream = inputStream;
+                UsbHostActivity.this.outputStream  = outputStream;
+                threadRead.start();
+                threadWrite.start();
+            }
+        });
 
         HashMap<String, UsbDevice> deviceSet =  manager.getDeviceList();
         Log.i(getClass().getSimpleName(),"开始检测USB设备");
         for (UsbDevice device:deviceSet.values())
         {
-            Log.i(this.getClass().getSimpleName(),device.getDeviceName()+" "+device.getVendorId()+" "+device.getProductId());
+
             Log.i(this.getClass().getSimpleName(),"hasPermission:"+manager.hasPermission(device));
             if(!manager.hasPermission(device))
             {
@@ -45,16 +65,67 @@ public class UsbHostActivity extends ActionBarActivity {
             }
             else
             {
-                fdti = new FDTI(manager,device);
-                fdti.begin();
+
+                begin(device);
             }
         }
     }
+
+    private void begin(UsbDevice device) {
+        fdti.begin(device);
+
+    }
+
+    private boolean threadStop = false;
+    Thread threadWrite =  new Thread(new Runnable() {
+        @Override
+        public void run() {
+            byte[] buffer = new byte[1];
+            try {
+                buffer[0] = 40;
+                while (!threadStop) {
+                    outputStream.write(buffer);
+                    Thread.sleep(1000);
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
+    });
+
+    Thread threadRead = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            byte[] buffer = new byte[1024];
+            int len = -1;
+            while(!threadStop)
+            {
+                try {
+                    while (!threadStop) {
+
+                        if((len = inputStream.read(buffer))!=-1)
+                        {
+                            Log.i(this.getClass().getSimpleName(),"Receive:"+new String(buffer,0,len));
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    });
 
     @Override
     protected void onDestroy() {
         unregisterReceiver(usbReceiver);
         fdti.close();
+        threadStop = true;
         super.onDestroy();
     }
 
@@ -72,8 +143,7 @@ public class UsbHostActivity extends ActionBarActivity {
                     {
                         if(device!=null)
                         {
-                            fdti = new FDTI(manager,device);
-                            fdti.begin();
+                            begin(device);
                         }
                     }
                     else

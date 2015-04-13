@@ -74,11 +74,7 @@ public class Bluetooth {
                     int result = RESULT_FAILD;
                     if(createSocket()) {
                         if(connectSocket()){
-//                            if(startReceiveThread())
-//                            {
                             result = RESULT_SUCCESS;
-//                            }
-
                         }
                     }
                     listener.result(result);

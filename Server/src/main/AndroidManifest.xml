@@ -50,32 +50,33 @@
             android:label="@string/tcp_bluetooth_transfer"
             android:theme="@style/AppTheme" >
             <intent-filter>
-                <!--<action android:name="android.intent.action.MAIN" />-->
-
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+            android:resource="@xml/device_filter"/>
         </activity>
         <activity
             android:name=".SettingsActivity"
             android:label="Settings" >
             <intent-filter>
                 <action android:name="com.mobilejohnny.iotserver.action.Settings" />
-
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity
-                android:name=".UsbHostActivity"
-                android:label="@string/title_activity_usb_host"
-                android:theme="@style/AppTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                       android:resource="@xml/device_filter"/>
-        </activity>
+        <!--<activity-->
+                <!--android:name=".UsbHostActivity"-->
+                <!--android:label="@string/title_activity_usb_host"-->
+                <!--android:theme="@style/AppTheme">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+                <!--<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>-->
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+            <!--<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"-->
+                       <!--android:resource="@xml/device_filter"/>-->
+        <!--</activity>-->
         <!-- <activity -->
         <!-- android:name=".CameraActivity" -->
         <!-- android:theme="@style/AppTheme" -->
@@ -93,7 +94,6 @@
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-
                 <category android:name="com.mobilejohnny.iot.server" />
             </intent-filter>
         </receiver>
@@ -113,7 +113,6 @@
             android:exported="false" >
         </service>
 
-        <!-- 这个receiver必须些完整包名 不然接收不到 -->
         <receiver
             android:name=".XMPushReceiver"
             android:exported="true" >
@@ -122,6 +121,8 @@
                 <action android:name="com.xiaomi.mipush.ERROR" />
             </intent-filter>
         </receiver>
+
+        <!-- 这个receiver必须完整包名 不然接收不到 -->
         <receiver
             android:name="com.xiaomi.push.service.receivers.NetworkStatusReceiver"
             android:exported="true" >
