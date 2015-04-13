@@ -174,16 +174,29 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         if(dest_type.equals( DEST_BLUETOOTH))
         {
             bluetooth = new Bluetooth(this,connectionListener);
-            bluetooth.connect(bluetoothDeviceName);
         }
         else
         {
             fdti = new FDTI(usbManager);
             fdti.setListener(connectionListener);
+        }
+
+        connect();
+
+        wakeLock.acquire();
+    }
+
+    private void connect() {
+        if(dest_type.equals( DEST_BLUETOOTH))
+        {
+            bluetooth.connect(bluetoothDeviceName);
+        }
+        else
+        {
             connectUsb();
         }
 
-        wakeLock.acquire();
+        txtStatus.setText("正在连接...");
     }
 
     private void readPreference() {
@@ -302,7 +315,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             {
                 if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF)==
                         BluetoothAdapter.STATE_ON)
-                bluetooth.connect(bluetoothDeviceName);
+                connect();
             }
             else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
             {
@@ -328,7 +341,8 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                     {
                         if(device!=null)
                         {
-                            fdti.begin(device);
+
+                            connect();
                         }
                     }
                     else
