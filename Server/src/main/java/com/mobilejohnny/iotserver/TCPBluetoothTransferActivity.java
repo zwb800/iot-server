@@ -35,9 +35,9 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private Bluetooth bluetooth;
     private TCP tcp;
     private UDP udp;
-    private Bluetooth.BluetoothListener bluetoothListener;
+    private ConnectionListener connectionListener;
     private PowerManager.WakeLock wakeLock;
-    private TextView txtBluetooth;
+
     private int port = 8080;
     private String bluetoothDeviceName ="OFFICE";
     private TextView txtIP;
@@ -48,7 +48,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private static final String CONNECT_UDP = "UDP";
     private TextView txtRX;
     private TextView txtTX;
-    private boolean show_rxtx = true;
+
     private UsbManager usbManager;
     private FDTI fdti;
     private String dest_type = DEST_BLUETOOTH;
@@ -56,7 +56,11 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private static final String DEST_USBOTG = "USB-OTG";
     private TextView txtDestType;
     private TextView txtConnectType;
-    private TextView labelBluetooth;
+    private TextView txtStatus;
+    private ConnectThread udpThread;
+    private ConnectThread destThread;
+    private ConnectThread.ConnectThreadListener connectRxThreadListener;
+    private ConnectThread.ConnectThreadListener connectTxThreadListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,8 +78,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         txtTX = (TextView)findViewById(R.id.txt_tx);
         txtConnectType = (TextView)findViewById(R.id.txt_connection_type);
         txtDestType = (TextView)findViewById(R.id.txt_dest_type);
-        labelBluetooth = (TextView)findViewById(R.id.label_bluetooth);
-        txtBluetooth = (TextView) findViewById(R.id.txt_bluetooth);
+        txtStatus = (TextView) findViewById(R.id.txt_status);
         txtIP = (TextView)findViewById(R.id.txt_ip);
 
         txtConnectType.setText(connection_type);
@@ -88,74 +91,74 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
 
         final Handler handler =  new Handler();
 
-        final ConnectThread.ConnectThreadListener connectTxThreadListener = new ConnectThread.ConnectThreadListener() {
+       connectTxThreadListener = new ConnectThread.ConnectThreadListener() {
             @Override
             public void onReceive(final byte[] data) {
-                if(show_rxtx) {
-                    final String str = convertToString(data);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            txtTX.setText(str);
-                        }
-                    });
-                }
-            }
-        };
-
-        final ConnectThread.ConnectThreadListener connectRxThreadListener = new ConnectThread.ConnectThreadListener() {
-            @Override
-            public void onReceive(final byte[] data) {
-                if(show_rxtx)
-                {
-                    final String str = convertToString(data);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            txtRX.setText(str);
-                        }
-                    });
-                }
-            }
-        };
-
-        bluetoothListener = new Bluetooth.BluetoothListener(){
-
-            @Override
-            public void result(final int result) {
-                final String msg = result == Bluetooth.RESULT_SUCCESS ? "已连接" : "连接失败";
+                final String str = convertToString(data);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        txtBluetooth.setText( bluetoothDeviceName+" "+msg);
+                        txtTX.setText(str);
                     }
                 });
             }
+        };
+
+        connectRxThreadListener = new ConnectThread.ConnectThreadListener() {
+            @Override
+            public void onReceive(final byte[] data) {
+                final String str = convertToString(data);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtRX.setText(str);
+                    }
+                });
+            }
+        };
+
+        connectionListener = new ConnectionListener(){
 
             @Override
-            public void onConnected(InputStream inputStream,OutputStream outputStream) {
-                TCPBluetoothTransferActivity.inputStream = inputStream;
-                TCPBluetoothTransferActivity.outputStream = outputStream;
-                if(connection_type.equals(CONNECT_TCP))
-                {
-                    tcp.startServer(port,udpListener);
+            public void result(final int result,InputStream inputStream,OutputStream outputStream) {
+
+                if(result==ConnectionListener.RESULT_SUCCESS){
+                    TCPBluetoothTransferActivity.inputStream = inputStream;
+                    TCPBluetoothTransferActivity.outputStream = outputStream;
+                    if(connection_type.equals(CONNECT_TCP))
+                    {
+                        tcp.startServer(port,udpListener);
+                    }
+                    else if(connection_type.equals(CONNECT_UDP))
+                    {
+                        udp.startServer(port,udpListener);
+                    }
                 }
-                else if(connection_type.equals(CONNECT_UDP))
-                {
-                    udp.startServer(port,udpListener);
-                }
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        String msg = result == ConnectionListener.RESULT_SUCCESS ? "已连接" : "连接失败";
+
+                        if (dest_type == DEST_BLUETOOTH)
+                            msg = (bluetoothDeviceName + " " + msg);
+
+                        txtStatus.setText(msg);
+                    }
+                });
+
             }
         };
 
         udpListener = new UDP.UDPListener(){
             @Override
             public void onConnected(InputStream inputStream, OutputStream outputStream) {
-            ConnectThread udpThread = new ConnectThread(inputStream, TCPBluetoothTransferActivity.outputStream);
+            udpThread = new ConnectThread(inputStream, TCPBluetoothTransferActivity.outputStream);
             udpThread.setListener(connectRxThreadListener);
+            destThread =  new ConnectThread(TCPBluetoothTransferActivity.inputStream,outputStream);
+            destThread.setListener(connectTxThreadListener);
             udpThread.start();
-            ConnectThread btThread =  new ConnectThread(TCPBluetoothTransferActivity.inputStream,outputStream);
-            btThread.setListener(connectTxThreadListener);
-            btThread.start();
+            destThread.start();
             }
         };
 
@@ -170,17 +173,14 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
 
         if(dest_type.equals( DEST_BLUETOOTH))
         {
-            bluetooth = new Bluetooth(this,bluetoothListener);
+            bluetooth = new Bluetooth(this,connectionListener);
             bluetooth.connect(bluetoothDeviceName);
         }
         else
         {
             fdti = new FDTI(usbManager);
-            fdti.setListener(bluetoothListener);
+            fdti.setListener(connectionListener);
             connectUsb();
-
-            labelBluetooth.setVisibility(View.GONE);
-            txtBluetooth.setVisibility(View.GONE);
         }
 
         wakeLock.acquire();
@@ -306,11 +306,17 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             }
             else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
             {
-                show_rxtx = false;
+                if(udpThread!=null)
+                udpThread.setListener(null);
+                if(destThread!=null)
+                destThread.setListener(null);
             }
             else if(intent.getAction().equals(Intent.ACTION_SCREEN_ON))
             {
-                show_rxtx = true;
+                if(udpThread!=null)
+                udpThread.setListener(connectRxThreadListener);
+                if(destThread!=null)
+                destThread.setListener(connectTxThreadListener);
             }
             else if(intent.getAction().equals(UsbHostActivity.USB_PERMISSION))
             {

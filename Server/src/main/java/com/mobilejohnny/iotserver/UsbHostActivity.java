@@ -38,19 +38,19 @@ public class UsbHostActivity extends ActionBarActivity {
 
         manager = (UsbManager) getSystemService(USB_SERVICE);
         fdti = new FDTI(manager);
-        fdti.setListener(new Bluetooth.BluetoothListener() {
+        fdti.setListener(new ConnectionListener() {
             @Override
-            public void result(int result) {
-
+            public void result(int result,InputStream inputStream, OutputStream outputStream) {
+                if(result== RESULT_SUCCESS)
+                {
+                    UsbHostActivity.this.inputStream = inputStream;
+                    UsbHostActivity.this.outputStream  = outputStream;
+                    threadRead.start();
+                    threadWrite.start();
+                }
             }
 
-            @Override
-            public void onConnected(InputStream inputStream, OutputStream outputStream) {
-                UsbHostActivity.this.inputStream = inputStream;
-                UsbHostActivity.this.outputStream  = outputStream;
-                threadRead.start();
-                threadWrite.start();
-            }
+
         });
 
         HashMap<String, UsbDevice> deviceSet =  manager.getDeviceList();

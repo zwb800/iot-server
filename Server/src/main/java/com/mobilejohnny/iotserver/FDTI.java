@@ -24,7 +24,7 @@ public class FDTI {
     private UsbEndpoint endpointOUT;
     private UsbDeviceConnection connection;
     private byte[] readBuffer;
-    private Bluetooth.BluetoothListener listener;
+    private ConnectionListener listener;
     private boolean closed;
 
     public FDTI(UsbManager manager)
@@ -38,6 +38,8 @@ public class FDTI {
 
     public void begin(UsbDevice device) {
 
+        if(!closed)
+            return;
         connection = manager.openDevice(device);
         int interfaceCount = device.getInterfaceCount();
         device.getInterface(interfaceCount-1);
@@ -67,45 +69,55 @@ public class FDTI {
                             }
                         }
                     }
-                if(endpointIN!=null && endpointOUT!=null&&listener!=null)
-                {
-                    closed = false;
-                    listener.onConnected(new InputStream() {
-                        byte[] buffer = new byte[1024];
-                        int len = 0;
-                        int i = 0;
 
-                        @Override
-                        public int read() throws IOException {
-                            if (len == 0) {
-                                try {
-                                    while((len = FDTI.this.read(buffer))<=0){
+
+                if(listener!=null){
+                    if(endpointIN!=null && endpointOUT!=null)
+                    {
+                        closed = false;
+                        listener.result(ConnectionListener.RESULT_SUCCESS,new InputStream() {
+                            byte[] buffer = new byte[1024];
+                            int len = 0;
+                            int i = 0;
+
+                            @Override
+                            public int read() throws IOException {
+                                if (len == 0) {
+                                    try {
+                                        while((len = FDTI.this.read(buffer))<=0){
                                             Thread.sleep(1);
+                                        }
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
                                     }
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
                                 }
+
+                                if(i==len)
+                                {
+                                    len = 0;
+                                    i= 0;
+                                    return -1;
+                                }
+
+                                return buffer[i++];
                             }
 
-                            if(i==len)
-                            {
-                                len = 0;
-                                i= 0;
-                                return -1;
+                        }, new OutputStream() {
+                            byte[] buffer = new byte[1];
+                            @Override
+                            public void write(int i) throws IOException {
+                                buffer[0] = (byte) i;
+                                FDTI.this.write(buffer);
                             }
-
-                            return buffer[i++];
-                        }
-
-                    }, new OutputStream() {
-                        byte[] buffer = new byte[1];
-                        @Override
-                        public void write(int i) throws IOException {
-                            buffer[0] = (byte) i;
-                            FDTI.this.write(buffer);
-                        }
-                    });
+                        });
+                    }
+                    else
+                    {
+                        listener.result(ConnectionListener.RESULT_FAILD,null,null);
+                    }
                 }
+
+
             }
             else {
                 Log.e(this.getClass().getSimpleName(), "claimInterface error");
@@ -175,7 +187,7 @@ public class FDTI {
         }
     }
 
-    public void setListener(Bluetooth.BluetoothListener bluetoothListener) {
-        this.listener =bluetoothListener;
+    public void setListener(ConnectionListener listener) {
+        this.listener = listener;
     }
 }

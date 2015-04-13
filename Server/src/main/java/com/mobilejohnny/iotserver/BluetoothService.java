@@ -68,17 +68,13 @@ public class BluetoothService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        bluetooth = new Bluetooth(null,new Bluetooth.BluetoothListener() {
+        bluetooth = new Bluetooth(null,new ConnectionListener() {
             @Override
-            public void result(int result) {
+            public void result(int result,InputStream inputStream, OutputStream outputStream) {
                 MainActivity.startActionBluetoothConnectResult(BluetoothService.this, result);
 //                Toast.makeText(BluetoothService.this,result==Bluetooth.RESULT_SUCCESS?"成功":"失败",Toast.LENGTH_SHORT).show();
             }
 
-            @Override
-            public void onConnected(InputStream inputStream, OutputStream outputStream) {
-
-            }
 
 
         });

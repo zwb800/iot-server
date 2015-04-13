@@ -37,15 +37,15 @@ public class Bluetooth {
 
 
     final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private BluetoothListener listener;
+    private ConnectionListener listener;
     private boolean connected;
     private AsyncTask<Void, Void, Integer> task;
 
 
 
-    public Bluetooth(Activity context,BluetoothListener l)
+    public Bluetooth(Activity context,ConnectionListener listener)
     {
-        listener = l;
+        this.listener = listener;
         adapter = BluetoothAdapter.getDefaultAdapter();
         connected = false;
 
@@ -63,7 +63,7 @@ public class Bluetooth {
 
         device =  findDeviceByName(deviceName);
         if(adapter!=null&&!adapter.isEnabled()){
-            listener.result(RESULT_BLUETOOTH_DISABLED);
+            listener.result(RESULT_BLUETOOTH_DISABLED,null,null);
             Log.e("BT", "蓝牙未启用");
         }
         else if(device!=null){
@@ -77,10 +77,9 @@ public class Bluetooth {
                             result = RESULT_SUCCESS;
                         }
                     }
-                    listener.result(result);
                     if(result==RESULT_SUCCESS) {
                         try {
-                            listener.onConnected(socket.getInputStream(),socket.getOutputStream());
+                            listener.result(ConnectionListener.RESULT_SUCCESS,socket.getInputStream(), socket.getOutputStream());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -90,7 +89,7 @@ public class Bluetooth {
         }
         else
         {
-            listener.result(RESULT_DEVICE_NOTFOUND);
+            listener.result(ConnectionListener.RESULT_DEVICE_NOTFOUND,null,null);
             Log.e("BT", "未找到绑定设备");
         }
     }
@@ -119,13 +118,13 @@ public class Bluetooth {
             }
 
             if(listener!=null){
-                listener.result(result);
+                listener.result(result,null,null);
             }
 
         }
         else
         {
-            listener.result(RESULT_FAILD);
+            listener.result(ConnectionListener.RESULT_FAILD,null,null);
             Log.e("BT","发送失败");
         }
     }
@@ -264,11 +263,7 @@ public class Bluetooth {
         return socket.getInputStream();
     }
 
-    public interface BluetoothListener {
-        public void result(int result);
 
-
-        void onConnected(InputStream inputStream,OutputStream outputStream);
-    }
 
 }
+
