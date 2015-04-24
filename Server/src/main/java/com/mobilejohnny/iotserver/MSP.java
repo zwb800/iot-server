@@ -26,39 +26,63 @@ public class MSP {
 
             MSP_SET_RAW_RC  = 200,
             MSP_SET_RAW_GPS = 201;
-    static Character[] payloadChar = new Character[16];
+    static byte[] payloadChar = new byte[16];
 
     public void updateRCPayload() {
-        payloadChar[0] = parseChar(rcRoll & 0xFF); //strip the 'most significant bit' (MSB) and buffer\
-        payloadChar[1] = parseChar(rcRoll >> 8 & 0xFF); //move the MSB to LSB, strip the MSB and buffer
-        payloadChar[2] = parseChar(rcPitch & 0xFF);//先传低8位
-        payloadChar[3] = parseChar(rcPitch >> 8 & 0xFF);//再传高8位
-        payloadChar[4] = parseChar(rcYaw & 0xFF);
-        payloadChar[5] = parseChar(rcYaw >> 8 & 0xFF);
-        payloadChar[6] = parseChar(rcThrottle & 0xFF);
-        payloadChar[7] = parseChar(rcThrottle >> 8 & 0xFF);
+        payloadChar[0] = (byte)(rcRoll & 0xFF); //strip the 'most significant bit' (MSB) and buffer\
+        payloadChar[1] = (byte)(rcRoll >> 8 & 0xFF); //move the MSB to LSB, strip the MSB and buffer
+        payloadChar[2] = (byte)(rcPitch & 0xFF);//先传低8位
+        payloadChar[3] = (byte)(rcPitch >> 8 & 0xFF);//再传高8位
+        payloadChar[4] = (byte)(rcYaw & 0xFF);
+        payloadChar[5] = (byte)(rcYaw >> 8 & 0xFF);
+        payloadChar[6] = (byte)(rcThrottle & 0xFF);
+        payloadChar[7] = (byte)(rcThrottle >> 8 & 0xFF);
 
         //aux1
-        payloadChar[8] = parseChar(rcAUX1 & 0xFF);
-        payloadChar[9] = parseChar(rcAUX1 >> 8 & 0xFF);
+        payloadChar[8] = (byte)(rcAUX1 & 0xFF);
+        payloadChar[9] = (byte)(rcAUX1 >> 8 & 0xFF);
 
         //aux2
-        payloadChar[10] = parseChar(rcAUX2 & 0xFF);
-        payloadChar[11] = parseChar(rcAUX2 >> 8 & 0xFF);
+        payloadChar[10] = (byte)(rcAUX2 & 0xFF);
+        payloadChar[11] = (byte)(rcAUX2 >> 8 & 0xFF);
 
         //aux3
-        payloadChar[12] = parseChar(rcAUX3 & 0xFF);
-        payloadChar[13] = parseChar(rcAUX3 >> 8 & 0xFF);
+        payloadChar[12] = (byte)(rcAUX3 & 0xFF);
+        payloadChar[13] = (byte)(rcAUX3 >> 8 & 0xFF);
 
         //aux4
-        payloadChar[14] = parseChar(rcAUX4 & 0xFF);
-        payloadChar[15] = parseChar(rcAUX4 >> 8 & 0xFF);
+        payloadChar[14] = (byte)(rcAUX4 & 0xFF);
+        payloadChar[15] = (byte)(rcAUX4 >> 8 & 0xFF);
+    }
+
+    private static byte[] gpsData = new byte[14];
+    public void updateGPS(byte fix,byte numSat,int longitude,int latitude,int altitude,int speed)
+    {
+        gpsData[0] = fix;
+        gpsData[1] = numSat;
+        gpsData[2] = (byte) latitude;
+        gpsData[3] = (byte) (latitude >> 8);
+        gpsData[4] = (byte) (latitude >> 16);
+        gpsData[5] = (byte) (latitude >> 32);
+        gpsData[6] = (byte) longitude;
+        gpsData[7] = (byte) (longitude >> 8);
+        gpsData[8] = (byte) (longitude >> 16);
+        gpsData[9] = (byte) (longitude >> 32);
+        gpsData[10] = (byte) altitude;
+        gpsData[11] = (byte) (altitude >> 8);
+        gpsData[12] = (byte) speed;
+        gpsData[13] = (byte) (speed >>8);
+    }
+
+    public byte[] getMSP_GPS()
+    {
+        return requestMSP(MSP_SET_RAW_GPS, gpsData);
     }
 
     static private int irmsp_RC =0;
     static private final int mspLenght_RC = 22;
     static private int bRMSP_RC=0;
-    private static List<Byte> msp_RC;
+    private static byte[] msp_RC;
     public void sendRCPayload() {
         byte[] arr_RC;
         irmsp_RC =0;
@@ -68,7 +92,7 @@ public class MSP {
 
         try {
             for (bRMSP_RC=0;bRMSP_RC<mspLenght_RC;bRMSP_RC++) {
-                arr_RC[irmsp_RC++] = msp_RC.get(bRMSP_RC);
+                arr_RC[irmsp_RC++] = msp_RC[bRMSP_RC];
             }
 //            send(arr_RC);
         }
@@ -87,8 +111,8 @@ public class MSP {
 //    command = message_id as per the table below
 //    data = as per the table below. UINT16 values are LSB first.
 //    crc = XOR of <size>, <command> and each data byte into a zero'ed sum
-    private List<Byte> requestMSP (int msp, Character[] payload) {
-        List<Byte> bf;
+    private byte[] requestMSP (int msp, byte[] payload) {
+        byte[] bf;
         int cList;
         byte checksumMSP;
         byte pl_size;
@@ -98,28 +122,33 @@ public class MSP {
         if (msp < 0) {
             return null;
         }
-        bf = new LinkedList<Byte>();
+        
+        pl_size = (byte)((payload != null ? parseInt(payload.length) : 0)&0xFF);
+        
+        bf = new byte[headerLength+pl_size+3];
+        int i = 0;
         for (cList=0;cList<headerLength;cList++) {//加入头字节$M<
-            bf.add( MSP_HEADER_BYTE[cList] );
+            bf[i++] = MSP_HEADER_BYTE[cList] ;
         }
 
         checksumMSP=0;
-        pl_size = (byte)((payload != null ? parseInt(payload.length) : 0)&0xFF);
-        bf.add(pl_size);//加入长度
+       
+        bf[i++] = pl_size;//加入长度
         checksumMSP ^= (pl_size&0xFF);
 
-        bf.add((byte)(msp & 0xFF));//加入命令
+        bf[i++] = (byte)(msp & 0xFF);//加入命令
         checksumMSP ^= (msp&0xFF);
 
         if (payload != null) {
             payloadLength = payload.length;
             for (cMSP=0;cMSP<payloadLength;cMSP++) {
-                bf.add((byte)(payload[cMSP]&0xFF));//加入数据
+                bf[i++] = (byte)(payload[cMSP]&0xFF);//加入数据
                 checksumMSP ^= (payload[cMSP]&0xFF);
             }
         }
-        bf.add(checksumMSP);
-        return (bf);
+        bf[i++] = checksumMSP;
+        
+        return bf;
     }
 
     private char parseChar(int val)
