@@ -13,4 +13,5 @@
     </string-array>
     <string name="pref_title_host">Host</string>
     <string name="pref_title_port">Port</string>
+    <string name="key_enable_gps">enableGPS</string>
 </resources>

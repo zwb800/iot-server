@@ -13,6 +13,7 @@ public class ConnectThread extends Thread {
     private final InputStream inputStream;
     private final OutputStream outputStream;
     private ConnectThreadListener listener;
+    public byte[] asyncData;
 
 
     public ConnectThread(InputStream inputStream,OutputStream outputStream)
@@ -34,9 +35,27 @@ public class ConnectThread extends Thread {
             {
                 int len = -1;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[1024];
                 while((len = inputStream.read(buffer))!=-1)
                 {
+
+                    if(len==22)
+                    {
+                        byte[] aData = getAsyncData();
+                        if(aData!=null&&aData.length>0)
+                        {
+
+                            for (int i=0;i<aData.length;i++)
+                            {
+                                buffer[len+i] = aData[i];
+                            }
+
+                            len+= aData.length;
+                            setAnsyData(null);
+                        }
+
+                    }
+                    Log.i("ConnectThread",len+"");
                     outputStream.write(buffer,0,len);
                     if(listener!=null)
                     {
@@ -52,6 +71,21 @@ public class ConnectThread extends Thread {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void setAnsyData(byte[] msp_gps) {
+        synchronized (this)
+        {
+            asyncData = msp_gps;
+        }
+    }
+
+    private byte[] getAsyncData()
+    {
+        synchronized (this)
+        {
+            return asyncData;
         }
     }
 

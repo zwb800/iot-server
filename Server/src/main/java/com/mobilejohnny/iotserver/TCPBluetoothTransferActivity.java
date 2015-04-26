@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.*;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.location.*;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,12 +20,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import com.xiaomi.mipush.sdk.MiPushClient;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Created by admin2 on 2015/3/20.
@@ -42,7 +45,6 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private String bluetoothDeviceName ="OFFICE";
     private TextView txtIP;
     private Receiver receiver;
-    private UDP.UDPListener udpListener;
     private String connection_type = CONNECT_UDP;
     private static final String CONNECT_TCP = "TCP";
     private static final String CONNECT_UDP = "UDP";
@@ -57,10 +59,25 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private TextView txtDestType;
     private TextView txtConnectType;
     private TextView txtStatus;
-    private ConnectThread udpThread;
+    private ConnectThread fromThread;
     private ConnectThread destThread;
     private ConnectThread.ConnectThreadListener connectRxThreadListener;
     private ConnectThread.ConnectThreadListener connectTxThreadListener;
+    private LocationManager locationManager;
+    private MSP msp;
+    private int fixSatelliteCount;
+    private int satelliteCount;
+    private UDP.UDPListener fromListener;
+    private LocationListener locationListener;
+    private GpsStatus.Listener gpsListener;
+    private TextView txtSatellite;
+    private TextView txtLongitude;
+    private TextView txtLatitude;
+    private TextView txtAltitude;
+    private TextView txtSpeed;
+    private TextView txtAccuracy;
+    private boolean enableGPS;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +88,9 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         usbManager = (UsbManager) getSystemService(USB_SERVICE);
+        locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+
+        msp = new MSP();
 
         wakeLock =  powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"TCP_BT");
 
@@ -80,6 +100,12 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         txtDestType = (TextView)findViewById(R.id.txt_dest_type);
         txtStatus = (TextView) findViewById(R.id.txt_status);
         txtIP = (TextView)findViewById(R.id.txt_ip);
+        txtSatellite = (TextView)findViewById(R.id.txt_satellite);
+        txtLongitude = (TextView)findViewById(R.id.txt_longitude);
+        txtLatitude = (TextView)findViewById(R.id.txt_latitude);
+        txtAltitude = (TextView)findViewById(R.id.txt_altitude);
+        txtSpeed = (TextView)findViewById(R.id.txt_speed);
+        txtAccuracy = (TextView)findViewById(R.id.txt_accuracy);
 
         txtConnectType.setText(connection_type);
         txtDestType.setText(dest_type);
@@ -127,11 +153,11 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                     TCPBluetoothTransferActivity.outputStream = outputStream;
                     if(connection_type.equals(CONNECT_TCP))
                     {
-                        tcp.startServer(port,udpListener);
+                        tcp.startServer(port,fromListener);
                     }
                     else if(connection_type.equals(CONNECT_UDP))
                     {
-                        udp.startServer(port,udpListener);
+                        udp.startServer(port,fromListener);
                     }
                 }
 
@@ -150,14 +176,14 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             }
         };
 
-        udpListener = new UDP.UDPListener(){
+        fromListener = new UDP.UDPListener(){
             @Override
             public void onConnected(InputStream inputStream, OutputStream outputStream) {
-            udpThread = new ConnectThread(inputStream, TCPBluetoothTransferActivity.outputStream);
-            udpThread.setListener(connectRxThreadListener);
+            fromThread = new ConnectThread(inputStream, TCPBluetoothTransferActivity.outputStream);
+            fromThread.setListener(connectRxThreadListener);
             destThread =  new ConnectThread(TCPBluetoothTransferActivity.inputStream,outputStream);
             destThread.setListener(connectTxThreadListener);
-            udpThread.start();
+            fromThread.start();
             destThread.start();
             }
         };
@@ -181,9 +207,84 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             fdti.setListener(connectionListener);
         }
 
+        requestLocation();
+
         connect();
 
         wakeLock.acquire();
+    }
+
+    private void requestLocation() {
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                updateGPS(location.getLongitude(),
+                        location.getLatitude(),
+                        location.getAltitude(),
+                        location.getSpeed(),
+                        location.getAccuracy());
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+
+            }
+        };
+
+        if(enableGPS)
+        {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+            gpsListener = new GpsStatus.Listener() {
+                @Override
+                public void onGpsStatusChanged(int i) {
+                    GpsStatus status = locationManager.getGpsStatus(null);
+                    if (status != null) {
+                        Iterator<GpsSatellite> iterator = status.getSatellites().iterator();
+                        fixSatelliteCount = 0;
+                        satelliteCount = 0;
+                        while (iterator.hasNext()) {
+                            GpsSatellite satellite = iterator.next();
+                            if (satellite.usedInFix()) {
+                                fixSatelliteCount++;
+                            }
+                            satelliteCount++;
+                        }
+                    }
+                }
+            };
+            locationManager.addGpsStatusListener(gpsListener);
+        }
+    }
+
+    private void updateGPS(double longitude, double latitude, double altitude, float speed,float accuracy) {
+        msp.updateGPS(fixSatelliteCount,
+                satelliteCount,
+                (long)(longitude*10000000),
+                (long)(latitude*10000000),
+                (int)altitude,
+                (int)(speed*100));
+        if(fromThread!=null)
+        {
+            fromThread.setAnsyData(msp.getMSP_GPS());//将gps数据附加到遥控数据后
+        }
+
+        txtSatellite.setText(fixSatelliteCount+"/"+satelliteCount);
+        txtLongitude.setText(longitude+"");
+        txtLatitude.setText(latitude+"");
+        txtAltitude.setText(altitude+"");
+        txtSpeed.setText(speed+"");
+        txtAccuracy.setText(accuracy+"");
     }
 
     private void connect() {
@@ -205,6 +306,8 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         dest_type = preferences.getString("destination_type",DEST_BLUETOOTH);
         port = Integer.parseInt(preferences.getString("port", "0"));
         bluetoothDeviceName = preferences.getString("device_name","BTCOM");
+
+        enableGPS = preferences.getBoolean(getString(R.string.key_enable_gps), false);
     }
 
     private void connectUsb()
@@ -216,6 +319,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
 
             if(usbManager.hasPermission(device))
             {
+                Log.i("USB-OTG","开始连接"+device.getDeviceName());
                 fdti.begin(device);
             }
             else
@@ -241,8 +345,9 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         StringBuffer stringBuffer = new StringBuffer(data.length*2);
         for (int i=0;i<data.length;i++)
         {
-            stringBuffer.append(data[i]);
-            stringBuffer.append(" ");
+
+            stringBuffer.append( String.format("%x ",data[i]).toUpperCase());
+
         }
         return stringBuffer.toString();
     }
@@ -268,6 +373,12 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         if(bluetooth!=null)
             bluetooth.close();
 
+        if(enableGPS)
+        {
+            locationManager.removeUpdates(locationListener);
+            locationManager.removeGpsStatusListener(gpsListener);
+        }
+
         wakeLock.release();
 
         super.onDestroy();
@@ -284,7 +395,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            startActivity(new Intent("com.mobilejohnny.iotserver.action.Settings"));
+            startActivityForResult(new Intent("com.mobilejohnny.iotserver.action.Settings"),0);
             return true;
         }
         else if (id == R.id.action_exit) {
@@ -294,6 +405,13 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        finish();
+        startActivity(getIntent());
     }
 
     @Override
@@ -319,35 +437,31 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             }
             else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
             {
-                if(udpThread!=null)
-                udpThread.setListener(null);
-                if(destThread!=null)
-                destThread.setListener(null);
+
             }
             else if(intent.getAction().equals(Intent.ACTION_SCREEN_ON))
             {
-                if(udpThread!=null)
-                udpThread.setListener(connectRxThreadListener);
-                if(destThread!=null)
-                destThread.setListener(connectTxThreadListener);
+
             }
             else if(intent.getAction().equals(UsbHostActivity.USB_PERMISSION))
             {
-                synchronized (this)
+                if(dest_type.equals(DEST_USBOTG))
                 {
-                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                    if(intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,false))
+                    synchronized (this)
                     {
-                        if(device!=null)
+                        UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                        if(intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,false))
                         {
-
-                            connect();
+                            if(device!=null)
+                            {
+                                connectUsb();
+                            }
                         }
-                    }
-                    else
-                    {
-                        Log.i(this.getClass().getSimpleName(),"Permission Denied");
+                        else
+                        {
+                            Log.i(this.getClass().getSimpleName(),"Permission Denied");
+                        }
                     }
                 }
             }

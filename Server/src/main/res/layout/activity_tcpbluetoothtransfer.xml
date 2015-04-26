@@ -10,7 +10,7 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.mobilejohnny.iotserver.XMActivity"
     androidcompat:columnCount="2"
-    androidcompat:rowCount="10"
+    androidcompat:rowCount="20"
     androidcompat:orientation="vertical">
 
     <TextView
@@ -95,5 +95,90 @@
             android:id="@+id/txt_status"
             androidcompat:layout_row="5"
         androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GPS卫星:"
+            androidcompat:layout_row="6"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/0"
+            android:id="@+id/txt_satellite"
+            androidcompat:layout_row="6"
+            androidcompat:layout_column="1"/>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="经度:"
+            androidcompat:layout_row="7"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/txt_longitude"
+            androidcompat:layout_row="7"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="纬度:"
+            androidcompat:layout_row="8"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/txt_latitude"
+            androidcompat:layout_row="8"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="高度:"
+            androidcompat:layout_row="9"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/txt_altitude"
+            androidcompat:layout_row="9"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="速度:"
+            androidcompat:layout_row="10"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/txt_speed"
+            androidcompat:layout_row="10"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="精度:"
+            androidcompat:layout_row="11"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/txt_accuracy"
+            androidcompat:layout_row="11"
+            androidcompat:layout_column="1"/>
 
 </android.support.v7.widget.GridLayout>

@@ -56,10 +56,10 @@ public class MSP {
     }
 
     private static byte[] gpsData = new byte[14];
-    public void updateGPS(byte fix,byte numSat,int longitude,int latitude,int altitude,int speed)
+    public void updateGPS(int fix,int numSat,long longitude,long latitude,int altitude,int speed)
     {
-        gpsData[0] = fix;
-        gpsData[1] = numSat;
+        gpsData[0] = (byte) fix;
+        gpsData[1] = (byte) numSat;
         gpsData[2] = (byte) latitude;
         gpsData[3] = (byte) (latitude >> 8);
         gpsData[4] = (byte) (latitude >> 16);

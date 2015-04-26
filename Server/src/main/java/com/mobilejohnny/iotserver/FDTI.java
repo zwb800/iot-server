@@ -25,7 +25,7 @@ public class FDTI {
     private UsbDeviceConnection connection;
     private byte[] readBuffer;
     private ConnectionListener listener;
-    private boolean closed;
+    private boolean closed = true;
 
     public FDTI(UsbManager manager)
     {
@@ -40,9 +40,11 @@ public class FDTI {
 
         if(!closed)
             return;
+
         connection = manager.openDevice(device);
         int interfaceCount = device.getInterfaceCount();
         device.getInterface(interfaceCount-1);
+
         for (int j=0;j<interfaceCount;j++)
         {
             UsbInterface usbInterface = device.getInterface(j);

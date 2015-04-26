@@ -40,5 +40,9 @@
             android:maxLength="6"
             android:defaultValue="8080"
             />
+    <CheckBoxPreference
+        android:key="@string/key_enable_gps"
+        android:title="GPS"
+        />
 </PreferenceCategory>
 </PreferenceScreen>
