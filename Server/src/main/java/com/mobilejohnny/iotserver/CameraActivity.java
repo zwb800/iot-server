@@ -1,6 +1,9 @@
 package com.mobilejohnny.iotserver;
 
 import android.annotation.TargetApi;
+import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.graphics.drawable.GradientDrawable;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -9,38 +12,31 @@ import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.*;
+import android.widget.FrameLayout;
+import com.mobilejohnny.iotserver.utils.CameraPreviewCallback;
 
 
 public class CameraActivity extends ActionBarActivity {
+
+    private SurfaceView surfaceView;
+    private Camera camera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-
-        openCamera();
+        surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+        camera = Camera.open();
+        camera.setDisplayOrientation(90);
+        surfaceView.getHolder().addCallback(new CameraPreviewCallback(this,camera,surfaceView));
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void openCamera()
-    {
-        CameraManager cameraManager = (CameraManager)getSystemService(CAMERA_SERVICE);
-
-        try {
-            String[] ids = cameraManager.getCameraIdList();
-            for (String id :ids )
-            {
-                CameraCharacteristics charact = cameraManager.getCameraCharacteristics(id);
-
-                Log.i("Camera",id);
-            }
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
+    @Override
+    protected void onDestroy() {
+        camera.release();
+        super.onDestroy();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
