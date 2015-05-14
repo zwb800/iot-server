@@ -14,31 +14,42 @@ import java.io.IOException;
  */
 public class CameraPreviewCallback implements SurfaceHolder.Callback {
     private final SurfaceView surfaceView;
+    private final Camera.Parameters cameraParam;
     private Camera camera;
 
     public CameraPreviewCallback(Context context,Camera camera,SurfaceView surfaceView) {
         this.camera = camera;
         this.surfaceView = surfaceView;
+        cameraParam = camera.getParameters();
+        changeParameter();
+        camera.setDisplayOrientation(90);
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        Camera.Parameters cameraParam = camera.getParameters();
+
+        changeSize(surfaceHolder);
+
+        try {
+            camera.setPreviewDisplay(surfaceHolder);
+            camera.startPreview();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void changeParameter() {
+        cameraParam.setPreviewFpsRange(30000, 30000);
+        camera.setParameters(cameraParam);
+    }
+
+    private void changeSize(SurfaceHolder surfaceHolder) {
         Camera.Size prevSize = cameraParam.getPreviewSize();
         ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
         layoutParams.width = surfaceHolder.getSurfaceFrame().height() * prevSize.height / prevSize.width;
         surfaceView.setLayoutParams(layoutParams);
         Log.i(getClass().getSimpleName(), "设置宽度：" + layoutParams.width);
         Log.i(getClass().getSimpleName(), "预览画面尺寸：" + prevSize.width + " " + prevSize.height);
-        cameraParam.setPreviewFpsRange(30000, 30000);
-        camera.setParameters(cameraParam);
-        try {
-
-            camera.setPreviewDisplay(surfaceHolder);
-            camera.startPreview();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

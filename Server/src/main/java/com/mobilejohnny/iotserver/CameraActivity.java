@@ -28,14 +28,19 @@ public class CameraActivity extends ActionBarActivity {
         setContentView(R.layout.activity_camera);
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         camera = Camera.open();
-        camera.setDisplayOrientation(90);
+
         surfaceView.getHolder().addCallback(new CameraPreviewCallback(this,camera,surfaceView));
     }
 
     @Override
     protected void onDestroy() {
-        camera.release();
+        releaseCamera();
         super.onDestroy();
+    }
+
+    private void releaseCamera() {
+        camera.release();
+        camera = null;
     }
 
     @Override
