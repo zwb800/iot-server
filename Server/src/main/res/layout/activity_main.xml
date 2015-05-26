@@ -13,55 +13,100 @@
     androidcompat:rowCount="8"
     androidcompat:orientation="vertical">
 
-    <TextView
-            android:text="数据:"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            androidcompat:layout_row="0"
-            androidcompat:layout_column="0"
-            android:textStyle="bold"/>
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="无数据"
-            android:id="@+id/txt_data"
-            androidcompat:layout_row="0"
-            androidcompat:layout_column="1"/>
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="RegID:"
-            androidcompat:layout_row="1"
-            androidcompat:layout_column="0"
-            android:textStyle="bold"/>
-       <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="未注册"
-            android:id="@+id/txt_regid"
-            androidcompat:layout_row="1"
-            androidcompat:layout_column="1"/>
 
     <TextView
+            android:text="接收:"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="蓝牙:"
-            android:id="@+id/textView5"
+            androidcompat:layout_row="0"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_rx"
+            androidcompat:layout_row="0"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:text="发送:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            androidcompat:layout_row="1"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_tx"
+            androidcompat:layout_row="1"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="服务端协议:"
+            androidcompat:layout_row="2"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TCP"
+            android:id="@+id/txt_connection_type"
+            androidcompat:layout_row="2"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IP:"
             androidcompat:layout_row="3"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/txt_ip"
+            androidcompat:layout_row="3"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="目标:"
+            androidcompat:layout_row="4"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bluetooth"
+            android:id="@+id/txt_dest_type"
+            androidcompat:layout_row="4"
+            androidcompat:layout_column="1"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="状态:"
+            androidcompat:layout_row="5"
             androidcompat:layout_column="0"
             android:textStyle="bold"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="未连接"
-            android:id="@+id/txt_bluetooth"
-            androidcompat:layout_row="3"
-        androidcompat:layout_column="1"/>
-    <Button
-            android:id="@+id/btn_connect"
-            android:text="重发"
+            android:id="@+id/txt_status"
+            androidcompat:layout_row="5"
+            androidcompat:layout_column="1"/>
+    <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            androidcompat:layout_row="4"
-            androidcompat:layout_column="0"/>
+            android:text="RegID:"
+            androidcompat:layout_row="6"
+            androidcompat:layout_column="0"
+            android:textStyle="bold"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_regid"
+            androidcompat:layout_row="6"
+            androidcompat:layout_column="1"/>
 </android.support.v7.widget.GridLayout>

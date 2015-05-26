@@ -1,11 +1,11 @@
 package com.mobilejohnny.iotserver;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.bluetooth.BluetoothAdapter;
+import android.content.*;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -15,15 +15,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import com.mobilejohnny.iotserver.utils.StringUtils;
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.*;
+import org.w3c.dom.Text;
 
 
 public class MainActivity extends ActionBarActivity  {
-
-    public static final String ACTION_SEND = "com.mobilejohnny.iotserver.action.SEND";
-    public static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
-    public static final String ACTION_XMPUSH_REGISTED = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
 
     // user your appid the key.
     public static final String APP_ID = "2882303761517303294";
@@ -35,49 +33,69 @@ public class MainActivity extends ActionBarActivity  {
     public static final String TAG = "xmpush";
     private static final String ACTION_BLUETOOTH_CONNECT_RESULT = "com.mobilejohnny.iotserver.action.BLUETOOTH_CONNECT_RESULT";
 
-    private TextView txtData;
-
-
-
     Receiver receiver = null;
-    private Button btnConnect;
 
     private Handler handler = null;
+    private TextView txtRX;
+    private TextView txtTX;
+    private TextView txtConnectType;
+    private TextView txtDestType;
+    private TextView txtStatus;
+    private TextView txtIP;
     private TextView txtRegID;
-    private TextView txtBluetooth;
+
+    private String dest_type = DEST_BLUETOOTH;
+    private static final String DEST_BLUETOOTH = "Bluetooth";
+    private static final String DEST_USBOTG = "USB-OTG";
+
+    private String connection_type = CONNECT_UDP;
+    private static final String CONNECT_TCP = "TCP";
+    private static final String CONNECT_UDP = "UDP";
+
+    private String bluetoothDeviceName ="OFFICE";//蓝牙设备名
+    private int port = 8080;//监听端口
+    private boolean enableGPS;//发送GPS数据 用于Multiwii
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BluetoothService.startActionConnect(this);
+        handler = new Handler();
 
-        txtData = (TextView)findViewById(R.id.txt_data);
+        readPreference();
+
+        ConnectionService.startActionConnect(this);
+
+        txtRX = (TextView)findViewById(R.id.txt_rx);
+        txtTX = (TextView)findViewById(R.id.txt_tx);
+        txtConnectType = (TextView)findViewById(R.id.txt_connection_type);
+        txtDestType = (TextView)findViewById(R.id.txt_dest_type);
+        txtStatus = (TextView) findViewById(R.id.txt_status);
+        txtIP = (TextView)findViewById(R.id.txt_ip);
         txtRegID = (TextView)findViewById(R.id.txt_regid);
-        txtBluetooth = (TextView)findViewById(R.id.txt_bluetooth);
-        btnConnect = (Button)findViewById(R.id.btn_connect);
 
-        handler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                String message = msg.getData().getString("message");
-                txtData.setText(message);
-            }
-        };
+        WifiManager wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
 
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-               BluetoothService.startActionSend(MainActivity.this,txtData.getText().toString());
-            }
-        });
+        int ip = wifiManager.getDhcpInfo().ipAddress;
+        txtIP.setText(StringUtils.getIPString(ip)+":"+port);
+        txtConnectType.setText(connection_type);
+        txtDestType.setText(dest_type);
 
         MiPushClient.registerPush(this, APP_ID, APP_KEY);
 
-        Log.d(TAG,"开始注册...");
-
         setLogger();
+    }
+
+    private void readPreference() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        connection_type = preferences.getString("connection_type",CONNECT_TCP);
+        dest_type = preferences.getString("destination_type", DEST_BLUETOOTH);
+        port = Integer.parseInt(preferences.getString("port", "0"));
+        bluetoothDeviceName = preferences.getString("device_name","BTCOM");
+
+        enableGPS = preferences.getBoolean(getString(R.string.key_enable_gps), false);
     }
 
 
@@ -113,15 +131,13 @@ public class MainActivity extends ActionBarActivity  {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
         }
         else if (id == R.id.action_exit) {
-            BluetoothService.startActionDisconnect(this);
+            ConnectionService.startActionDisconnect(this);
             MiPushClient.unregisterPush(this);
             finish();
             return true;
@@ -132,12 +148,8 @@ public class MainActivity extends ActionBarActivity  {
     @Override
     protected void onStart() {
         super.onStart();
-        receiver = new Receiver();
-        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
 
-        localBroadcastManager.registerReceiver(receiver, new IntentFilter(ACTION_SEND));
-        localBroadcastManager.registerReceiver(receiver, new IntentFilter(ACTION_XMPUSH_REGISTED));
-        registerReceiver(receiver, new IntentFilter(ACTION_BLUETOOTH_CONNECT_RESULT));
+        registerReceiver();
     }
 
     @Override
@@ -149,23 +161,29 @@ public class MainActivity extends ActionBarActivity  {
         super.onStop();
     }
 
-    public static void startActionXMPush_Registed(Context context,String reg_id)
-    {
-        Intent i = new Intent(ACTION_XMPUSH_REGISTED);
-        i.putExtra(EXTRA_PARAM_MESSAGE, reg_id);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(i);
+    private void registerReceiver() {
+        receiver = new Receiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConnectionService.ACTION_RX);
+        intentFilter.addAction(ConnectionService.ACTION_TX);
+        intentFilter.addAction(ConnectionService.ACTION_CONNECTED);
+        intentFilter.addAction(ConnectionService.ACTION_XMPUSH_REGISTED);
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        intentFilter.addAction(UsbHostActivity.USB_PERMISSION);
+
+        registerReceiver(receiver, intentFilter);
     }
 
-    public static void startActionMessage(Context context,String message)
+    public static void startActionXMPush_Registed(Context context,String reg_id)
     {
-        Intent i = new Intent(ACTION_SEND);
-        i.putExtra(EXTRA_PARAM_MESSAGE, message);
-        context.sendBroadcast(i);
+        Intent i = new Intent(ConnectionService.ACTION_XMPUSH_REGISTED);
+        i.putExtra(ConnectionService.EXTRA_PARAM_MESSAGE, reg_id);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(i);
     }
 
     public static void startActionBluetoothConnectResult(Context context,int result) {
         Intent i = new Intent(ACTION_BLUETOOTH_CONNECT_RESULT);
-        i.putExtra(EXTRA_PARAM_MESSAGE, result);
+        i.putExtra(ConnectionService.EXTRA_PARAM_MESSAGE, result);
         context.sendBroadcast(i);
     }
 
@@ -173,30 +191,44 @@ public class MainActivity extends ActionBarActivity  {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if(intent.getAction().equals(ACTION_SEND)) {
-                Message message1 = new Message();
-                message1.getData().putString("message", intent.getStringExtra(EXTRA_PARAM_MESSAGE));
-                handler.sendMessage(message1);
-            }
-            else if(intent.getAction().equals(ACTION_XMPUSH_REGISTED)) {
-                final String regid = intent.getStringExtra(EXTRA_PARAM_MESSAGE);
-                new Handler(){
+            if(intent.getAction().equals(ConnectionService.ACTION_TX)) {
+                final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_PARAM_MESSAGE));
+                handler.post(new Runnable() {
                     @Override
-                    public void handleMessage(Message msg) {
-                        super.handleMessage(msg);
+                    public void run() {
+                        txtTX.setText(str);
+                    }
+                });
+            }
+            else if(intent.getAction().equals(ConnectionService.ACTION_RX)) {
+                final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_PARAM_MESSAGE));
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtRX.setText(str);
+                    }
+                });
+            }
+            else if(intent.getAction().equals(ConnectionService.ACTION_CONNECTED)) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtStatus.setText(bluetoothDeviceName+" 已连接");
+                    }
+                });
+            }
+            else if(intent.getAction().equals(ConnectionService.ACTION_XMPUSH_REGISTED)) {
+                final String regid = intent.getStringExtra(ConnectionService.EXTRA_PARAM_MESSAGE);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
                         txtRegID.setText(regid);
                     }
-                }.sendEmptyMessage(0);
+                });
+
             }
             else if(intent.getAction().equals(ACTION_BLUETOOTH_CONNECT_RESULT)) {
-                final int result = intent.getIntExtra(EXTRA_PARAM_MESSAGE, Bluetooth.RESULT_FAILD);
-                new Handler(){
-                    @Override
-                    public void handleMessage(Message msg) {
-                        super.handleMessage(msg);
-                        txtBluetooth.setText(result==Bluetooth.RESULT_SUCCESS?"已连接":"连接失败");
-                    }
-                }.sendEmptyMessage(0);
+
             }
         }
     }

@@ -67,7 +67,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private MSP msp;
     private int fixSatelliteCount;
     private int satelliteCount;
-    private UDP.UDPListener fromListener;
+    private ConnectionListener fromListener;
     private LocationListener locationListener;
     private GpsStatus.Listener gpsListener;
     private TextView txtSatellite;
@@ -176,9 +176,9 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             }
         };
 
-        fromListener = new UDP.UDPListener(){
+        fromListener = new ConnectionListener(){
             @Override
-            public void onConnected(InputStream inputStream, OutputStream outputStream) {
+            public void result(final int result,InputStream inputStream,OutputStream outputStream) {
             fromThread = new ConnectThread(inputStream, TCPBluetoothTransferActivity.outputStream);
             fromThread.setListener(connectRxThreadListener);
             destThread =  new ConnectThread(TCPBluetoothTransferActivity.inputStream,outputStream);
@@ -399,7 +399,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
             return true;
         }
         else if (id == R.id.action_exit) {
-            BluetoothService.startActionDisconnect(this);
+            ConnectionService.startActionDisconnect(this);
             MiPushClient.unregisterPush(this);
             finish();
             return true;

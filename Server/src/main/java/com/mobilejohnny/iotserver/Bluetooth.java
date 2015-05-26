@@ -99,7 +99,7 @@ public class Bluetooth {
        return  socket.getOutputStream();
     }
 
-    public void send(final String data)
+    public void send(byte[] data)
     {
         if(socket!=null)
         {
@@ -108,19 +108,12 @@ public class Bluetooth {
                 try {
                     OutputStream out = socket.getOutputStream();
 
-                    out.write(data.getBytes());
-
-                    out.flush();
+                    out.write(data);
                     result = RESULT_SUCCESS;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-
-            if(listener!=null){
-                listener.result(result,null,null);
-            }
-
         }
         else
         {

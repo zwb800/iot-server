@@ -35,7 +35,7 @@ public class UDP {
         return outputStream;
     }
 
-    public boolean startServer(int port,UDPListener listener)
+    public boolean startServer(int port,ConnectionListener listener)
     {
         try {
             this.port = port;
@@ -81,7 +81,7 @@ public class UDP {
 
             };
 
-            listener.onConnected(inputStream,outputStream);
+            listener.result(Bluetooth.RESULT_SUCCESS, inputStream, outputStream);
 
 
         } catch (SocketException e) {

@@ -6,7 +6,6 @@ import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
@@ -37,8 +36,7 @@ public class XMPushReceiver extends PushMessageReceiver {
                 "onReceiveMessage is called. " + message.toString());
         String msg = message.getContent();
 
-        BluetoothService.startActionSend(context,msg);
-        MainActivity.startActionMessage(context,msg);
+        ConnectionService.startActionSend(context, msg.getBytes());
 
 //        String log = context.getString(R.string.recv_message, message.getContent());
 //        MainActivity.logList.add(0, getSimpleDate() + " " + log);
@@ -52,7 +50,7 @@ public class XMPushReceiver extends PushMessageReceiver {
 
     @Override
     public void onCommandResult(Context context, MiPushCommandMessage message) {
-        Log.d(MainActivity.TAG,
+        Log.d(getClass().getSimpleName(),
                 "onCommandResult is called. " + message.toString());
         String command = message.getCommand();
         List<String> arguments = message.getCommandArguments();
@@ -64,13 +62,12 @@ public class XMPushReceiver extends PushMessageReceiver {
 
         if(message.getResultCode()== ErrorCode.SUCCESS)
         {
-
             if(MiPushClient.COMMAND_REGISTER.equals(command))
             {
                 String reg_id = arguments.get(0);
                 MainActivity.startActionXMPush_Registed(context,reg_id);
 
-                Log.d(MainActivity.TAG,"RegID:"+reg_id);
+                Log.d(getClass().getSimpleName(),"RegID:"+reg_id);
             }
         }
 

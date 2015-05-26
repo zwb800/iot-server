@@ -9,7 +9,7 @@ import java.util.Date;
 /**
  * Created by admin2 on 2015/5/14.
  */
-public class MJpeg {
+public class Mjpeg {
 
     public static byte[] HEADER_MJPG = (
             "Connection: Close" +
@@ -36,7 +36,7 @@ public class MJpeg {
 
     private OutputStream outputStream;
 
-    public MJpeg(OutputStream outputStream)
+    public Mjpeg(OutputStream outputStream)
     {
         this.outputStream = outputStream;
     }

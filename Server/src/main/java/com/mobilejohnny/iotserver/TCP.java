@@ -45,7 +45,7 @@ public class TCP {
         return outputStream;
     }
 
-    public boolean startServer(int port, final UDP.UDPListener listener)
+    public boolean startServer(int port, final ConnectionListener listener)
     {
         boolean result = false;
         try {
@@ -58,7 +58,7 @@ public class TCP {
                         while(!Thread.currentThread().isInterrupted()){
 
                             socket = serverSocket.accept();
-                            listener.onConnected(socket.getInputStream(),socket.getOutputStream());
+                            listener.result(Bluetooth.RESULT_SUCCESS, socket.getInputStream(), socket.getOutputStream());
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
