@@ -5,4 +5,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">设置</string>
     <string name="action_exit">退出</string>
+    <string name="init_button_label">按钮文字</string>
+    <string name="configure">配置</string>
+    <string name="add_widget">Add widget</string>
+
 </resources>

@@ -1,0 +1,20 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/widget_margin"
+                android:background="#09C"
+                >
+
+    <Button
+            android:id="@+id/appwidget_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="加载中"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:layout_margin="0dp"
+            android:background="@drawable/btn_style"
+        />
+</RelativeLayout>
