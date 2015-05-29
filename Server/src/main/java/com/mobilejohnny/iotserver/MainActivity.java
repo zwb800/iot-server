@@ -134,6 +134,7 @@ public class MainActivity extends ActionBarActivity  {
 
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            startActivityForResult(new Intent("com.mobilejohnny.iotserver.action.Settings"),0);
             return true;
         }
         else if (id == R.id.action_exit) {
@@ -143,6 +144,13 @@ public class MainActivity extends ActionBarActivity  {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        finish();
+        startActivity(getIntent());
     }
 
     @Override
@@ -166,7 +174,7 @@ public class MainActivity extends ActionBarActivity  {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConnectionService.ACTION_RX);
         intentFilter.addAction(ConnectionService.ACTION_TX);
-        intentFilter.addAction(ConnectionService.ACTION_CONNECTED);
+        intentFilter.addAction(ConnectionService.ACTION_CONNECTION_STATE_CHANGE);
         intentFilter.addAction(ConnectionService.ACTION_XMPUSH_REGISTED);
         intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         intentFilter.addAction(UsbHostActivity.USB_PERMISSION);
@@ -177,13 +185,13 @@ public class MainActivity extends ActionBarActivity  {
     public static void startActionXMPush_Registed(Context context,String reg_id)
     {
         Intent i = new Intent(ConnectionService.ACTION_XMPUSH_REGISTED);
-        i.putExtra(ConnectionService.EXTRA_PARAM_MESSAGE, reg_id);
+        i.putExtra(ConnectionService.EXTRA_MESSAGE, reg_id);
         LocalBroadcastManager.getInstance(context).sendBroadcast(i);
     }
 
     public static void startActionBluetoothConnectResult(Context context,int result) {
         Intent i = new Intent(ACTION_BLUETOOTH_CONNECT_RESULT);
-        i.putExtra(ConnectionService.EXTRA_PARAM_MESSAGE, result);
+        i.putExtra(ConnectionService.EXTRA_MESSAGE, result);
         context.sendBroadcast(i);
     }
 
@@ -192,7 +200,7 @@ public class MainActivity extends ActionBarActivity  {
         public void onReceive(Context context, Intent intent) {
 
             if(intent.getAction().equals(ConnectionService.ACTION_TX)) {
-                final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_PARAM_MESSAGE));
+                final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_MESSAGE));
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -201,7 +209,7 @@ public class MainActivity extends ActionBarActivity  {
                 });
             }
             else if(intent.getAction().equals(ConnectionService.ACTION_RX)) {
-                final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_PARAM_MESSAGE));
+                final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_MESSAGE));
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -209,16 +217,26 @@ public class MainActivity extends ActionBarActivity  {
                     }
                 });
             }
-            else if(intent.getAction().equals(ConnectionService.ACTION_CONNECTED)) {
+            else if(intent.getAction().equals(ConnectionService.ACTION_CONNECTION_STATE_CHANGE)) {
+                final int state = intent.getIntExtra(ConnectionService.EXTRA_STATE, ConnectionService.STATE_CONNECT_FAILD);
+
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        txtStatus.setText(bluetoothDeviceName+" 已连接");
+
+                        String msg = "";
+                        switch (state)
+                        {
+                            case ConnectionService.STATE_CONNECT_FAILD:msg = "连接失败";break;
+                            case ConnectionService.STATE_CONNECTED:msg = "已连接";break;
+                            case ConnectionService.STATE_CONNECTING:msg = "连接中";break;
+                        }
+                        txtStatus.setText(bluetoothDeviceName+" "+msg);
                     }
                 });
             }
             else if(intent.getAction().equals(ConnectionService.ACTION_XMPUSH_REGISTED)) {
-                final String regid = intent.getStringExtra(ConnectionService.EXTRA_PARAM_MESSAGE);
+                final String regid = intent.getStringExtra(ConnectionService.EXTRA_MESSAGE);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {

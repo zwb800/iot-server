@@ -33,9 +33,15 @@ public class ConnectionService extends Service {
 
     public static final String ACTION_RX = "com.mobilejohnny.iotserver.action.RX";
     public static final String ACTION_TX = "com.mobilejohnny.iotserver.action.TX";
-    public static final String ACTION_CONNECTED = "com.mobilejohnny.iotserver.action.CONNECTED";
-    public static final String EXTRA_PARAM_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
+    public static final String EXTRA_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
     public static final String ACTION_XMPUSH_REGISTED = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
+    public static final String ACTION_CONNECTION_STATE_CHANGE = "com.mobilejohnny.iotserver.action.CONNECTION_STATE_CHANGE";
+    public static final String EXTRA_STATE = "com.mobilejohnny.iotserver.extra.STATE";
+
+    public static final int STATE_CONNECTING = 1;
+    public static final int STATE_CONNECTED = 2;
+    public static final int STATE_CONNECT_FAILD = 3;
+
 
 
     private UsbManager usbManager;
@@ -64,7 +70,7 @@ public class ConnectionService extends Service {
     public static void startActionSend(Context context, byte[] msg) {
 
         Intent intent = new Intent(context, ConnectionService.class);
-        intent.putExtra(EXTRA_PARAM_MESSAGE,msg);
+        intent.putExtra(EXTRA_MESSAGE, msg);
         intent.setAction(ACTION_SEND);
         context.startService(intent);
 
@@ -138,8 +144,13 @@ public class ConnectionService extends Service {
                         udp.startServer(port,fromListener);
                     }
 
-                    connected();
+                    connectStateChange(STATE_CONNECTED);
                 }
+                else if(result==ConnectionListener.RESULT_FAILD)
+                {
+                    connectStateChange(STATE_CONNECT_FAILD);
+                }
+
             }
         };
 
@@ -157,6 +168,7 @@ public class ConnectionService extends Service {
         if(dest_type.equals( DEST_BLUETOOTH))
         {
             bluetooth = new Bluetooth(null,destListener);
+            connectStateChange(STATE_CONNECTING);
         }
         else if(dest_type.equals( DEST_USBOTG))
         {
@@ -164,6 +176,7 @@ public class ConnectionService extends Service {
             fdti.setListener(destListener);
         }
     }
+
 
     private void readPreference() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -177,20 +190,22 @@ public class ConnectionService extends Service {
 
     private void rx(byte[] data) {
         Intent i = new Intent(ACTION_RX);
-        i.putExtra(EXTRA_PARAM_MESSAGE, data);
+        i.putExtra(EXTRA_MESSAGE, data);
         sendBroadcast(i);
     }
 
     private void tx(byte[] data) {
         Intent i = new Intent(ACTION_TX);
-        i.putExtra(EXTRA_PARAM_MESSAGE, data);
+        i.putExtra(EXTRA_MESSAGE, data);
         sendBroadcast(i);
     }
 
-    private void connected() {
-        Intent i = new Intent(ACTION_CONNECTED);
+    private void connectStateChange(int state) {
+        Intent i = new Intent(ACTION_CONNECTION_STATE_CHANGE);
+        i.putExtra(EXTRA_STATE,state);
         sendBroadcast(i);
     }
+
 
     @Override
     public void onDestroy() {
@@ -242,7 +257,7 @@ public class ConnectionService extends Service {
 
     private void handleActionSend(Intent intent) {
 
-        byte[] data = intent.getByteArrayExtra(EXTRA_PARAM_MESSAGE);
+        byte[] data = intent.getByteArrayExtra(EXTRA_MESSAGE);
         send(data);
     }
 

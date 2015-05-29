@@ -19,7 +19,7 @@ android {
     defaultConfig {
         applicationId "com.mobilejohnny.iotwidget"
 //      低版本 MiPush Server SDK兼容有问题
-        minSdkVersion 8
+        minSdkVersion 14
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"

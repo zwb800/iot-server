@@ -84,12 +84,16 @@ public class Bluetooth {
                             e.printStackTrace();
                         }
                     }
+                    else
+                    {
+                        listener.result(ConnectionListener.RESULT_FAILD,null,null);
+                    }
                 }
             }).start();
         }
         else
         {
-            listener.result(ConnectionListener.RESULT_DEVICE_NOTFOUND,null,null);
+            listener.result(ConnectionListener.RESULT_DEVICE_NOTFOUND, null, null);
             Log.e("BT", "未找到绑定设备");
         }
     }

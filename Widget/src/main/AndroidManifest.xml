@@ -43,6 +43,16 @@
                 <action android:name="com.mobilejohnny.iotwidget.ButtonAppWidget.ACTION_WIDGET_CLICK" />
             </intent-filter>
         </receiver>
+
+        <activity
+            android:name=".ColorSelectDialog"
+            android:label="@string/title_activity_color_select_dialog" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>

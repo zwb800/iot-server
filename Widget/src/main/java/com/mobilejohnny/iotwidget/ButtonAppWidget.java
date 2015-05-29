@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 
@@ -14,12 +15,14 @@ import android.widget.RemoteViews;
  */
 public class ButtonAppWidget extends AppWidgetProvider {
 
+    public static final String EXTRA_APPWIDGETID = "appwidgetid";
+
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
         final int N = appWidgetIds.length;
         for (int i = 0; i < N; i++) {
-            updateAppWidget(context, appWidgetManager, appWidgetIds[i]);
+            updateAppWidget(context, appWidgetManager, appWidgetIds[i],false);
         }
     }
 
@@ -43,19 +46,32 @@ public class ButtonAppWidget extends AppWidgetProvider {
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
+                                int appWidgetId,boolean processing) {
 
        WidgetSetting setting = ButtonAppWidgetConfigureActivity.loadSetting(context, appWidgetId);
 
         int requestCode = appWidgetId;//按widget来区分intent
         Intent intent  = new Intent(ClickReceiver.ACTION_WIDGET_CLICK);
+        intent.putExtra(EXTRA_APPWIDGETID,appWidgetId);
         intent.putExtra(ClickReceiver.EXTRA_VALUE,setting.value);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context,requestCode,intent,PendingIntent.FLAG_UPDATE_CURRENT);
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.button_app_widget);
-        views.setTextViewText(R.id.appwidget_button, setting.buttonLabel);
-        views.setOnClickPendingIntent(R.id.appwidget_button,pendingIntent);
+        Log.i("updateWidget", setting.buttonLabel);
+        if(processing)
+        {
+            views.setInt(R.id.appwidget_button, "setBackgroundResource", R.color.user_icon_8);
+            views.setOnClickPendingIntent(R.id.appwidget_button,null);
+        }
+        else
+        {
+            views.setInt(R.id.appwidget_button, "setBackgroundResource", setting.color);
+            views.setOnClickPendingIntent(R.id.appwidget_button,pendingIntent);
+            views.setTextViewText(R.id.appwidget_button, setting.buttonLabel);
+        }
+
+
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }

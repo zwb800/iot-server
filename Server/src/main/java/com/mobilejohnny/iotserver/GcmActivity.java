@@ -134,12 +134,6 @@ public class GcmActivity extends ActionBarActivity {
             return true;
         }
 
-        if(id == R.id.action_xmactivity)
-        {
-            Intent i = new Intent(this,MainActivity.class);
-            startActivity(i);
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 }
