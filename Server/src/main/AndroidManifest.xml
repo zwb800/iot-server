@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mobilejohnny.iotserver" >
-    <uses-feature android:name="android.hardware.usb.host" android:required="false"/>
-    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -17,7 +23,7 @@
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="com.mobilejohnny.iotserver.permission.MIPUSH_RECEIVE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <permission
         android:name="com.mobilejohnny.iotserver.permission.C2D_MESSAGE"
@@ -38,57 +44,61 @@
             android:name=".GcmActivity"
             android:label="@string/title_activity_gcm" >
         </activity>
-         <activity
-         android:name=".MainActivity"
-         android:label="@string/app_name"
-         android:theme="@style/AppTheme">
-         <intent-filter>
-         <action android:name="android.intent.action.MAIN" />
-         <category android:name="android.intent.category.LAUNCHER" />
-         </intent-filter>
-         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".TCPBluetoothTransferActivity"
             android:label="@string/tcp_bluetooth_transfer"
             android:theme="@style/AppTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-            android:resource="@xml/device_filter"/>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
         </activity>
         <activity
             android:name=".SettingsActivity"
             android:label="Settings" >
             <intent-filter>
                 <action android:name="com.mobilejohnny.iotserver.action.Settings" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <!--<activity-->
-                <!--android:name=".UsbHostActivity"-->
-                <!--android:label="@string/title_activity_usb_host"-->
-                <!--android:theme="@style/AppTheme">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
-                <!--<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>-->
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
-            <!--<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"-->
-                       <!--android:resource="@xml/device_filter"/>-->
-        <!--</activity>-->
-         <!--<activity-->
-         <!--android:name=".CameraActivity"-->
-         <!--android:theme="@style/AppTheme"-->
-         <!--android:label="@string/title_activity_camera" >-->
-         <!--<intent-filter>-->
-         <!--<action android:name="android.intent.action.MAIN" />-->
-         <!--<category android:name="android.intent.category.LAUNCHER" />-->
-         <!--</intent-filter>-->
-         <!--</activity>-->
+        <!-- <activity -->
+        <!-- android:name=".UsbHostActivity" -->
+        <!-- android:label="@string/title_activity_usb_host" -->
+        <!-- android:theme="@style/AppTheme"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.MAIN" /> -->
+        <!-- <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/> -->
+        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+        <!-- </intent-filter> -->
+        <!-- <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" -->
+        <!-- android:resource="@xml/device_filter"/> -->
+        <!-- </activity> -->
+        <!-- <activity -->
+        <!-- android:name=".CameraActivity" -->
+        <!-- android:theme="@style/AppTheme" -->
+        <!-- android:label="@string/title_activity_camera" > -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.MAIN" /> -->
+        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+        <!-- </intent-filter> -->
+        <!-- </activity> -->
 
         <receiver
             android:name=".GcmReceiver"
@@ -97,6 +107,7 @@
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+
                 <category android:name="com.mobilejohnny.iot.server" />
             </intent-filter>
         </receiver>
@@ -142,8 +153,14 @@
                 <action android:name="com.xiaomi.push.PING_TIMER" />
             </intent-filter>
         </receiver>
-
-
+        <receiver
+            android:name=".ConnectionReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -2,7 +2,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="@dimen/widget_margin"
-                android:background="#09C"
                 >
 
     <Button
@@ -18,4 +17,12 @@
             android:layout_margin="0dp"
             android:background="@drawable/btn_style"
         />
+
+    <ProgressBar
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/appwidget_progressBar"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"/>
 </RelativeLayout>

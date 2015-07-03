@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.view.View;
 import android.widget.RemoteViews;
 
 
@@ -61,15 +62,18 @@ public class ButtonAppWidget extends AppWidgetProvider {
         Log.i("updateWidget", setting.buttonLabel);
         if(processing)
         {
-            views.setInt(R.id.appwidget_button, "setBackgroundResource", R.color.user_icon_8);
-            views.setOnClickPendingIntent(R.id.appwidget_button,null);
+            views.setViewVisibility(R.id.appwidget_button, View.GONE);
+            views.setViewVisibility(R.id.appwidget_progressBar,View.VISIBLE);
         }
         else
         {
-            views.setInt(R.id.appwidget_button, "setBackgroundResource", setting.color);
-            views.setOnClickPendingIntent(R.id.appwidget_button,pendingIntent);
-            views.setTextViewText(R.id.appwidget_button, setting.buttonLabel);
+            views.setViewVisibility(R.id.appwidget_button, View.VISIBLE);
+            views.setViewVisibility(R.id.appwidget_progressBar,View.GONE);
         }
+
+        views.setInt(R.id.appwidget_button, "setBackgroundResource", setting.color);
+        views.setOnClickPendingIntent(R.id.appwidget_button,pendingIntent);
+        views.setTextViewText(R.id.appwidget_button, setting.buttonLabel);
 
 
         // Instruct the widget manager to update the widget

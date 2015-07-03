@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.location.LocationManager;
+import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -41,8 +42,9 @@ public class ConnectionService extends Service {
     public static final int STATE_CONNECTING = 1;
     public static final int STATE_CONNECTED = 2;
     public static final int STATE_CONNECT_FAILD = 3;
-
-
+    public static final int STATE_DISCONNECTED = 4;
+    private static final int MAX_RECONNECT = 100;
+    private static final String EXTRA_DELAY = "com.mobilejohnny.iotserver.extra.DELAY";
 
     private UsbManager usbManager;
     private LocationManager locationManager;
@@ -67,6 +69,8 @@ public class ConnectionService extends Service {
     private int port = 8080;//监听端口
     private boolean enableGPS;//发送GPS数据 用于Multiwii
 
+    private static int reconnectcount;
+
     public static void startActionSend(Context context, byte[] msg) {
 
         Intent intent = new Intent(context, ConnectionService.class);
@@ -76,11 +80,31 @@ public class ConnectionService extends Service {
 
     }
 
-    public static void startActionConnect(Context context) {
-
+    public static void startActionConnect(Context context,int delay) {
         Intent intent = new Intent(context, ConnectionService.class);
         intent.setAction(ACTION_CONNECT);
+        intent.putExtra(EXTRA_DELAY,delay);
         context.startService(intent);
+    }
+
+    public static void startActionReconnect(Context context)
+    {
+        if(reconnectcount<MAX_RECONNECT)
+        {
+           int delay = 1;
+            for (int i=0;i<reconnectcount;i++)
+            {
+                delay *= 2;
+            }
+            delay = Math.min( delay*3000,500000);//最大重连间隔5分钟
+
+            startActionConnect(context,delay);//三秒后重试
+            reconnectcount++;
+        }
+        else
+        {
+            Log.i("ConnectionService","重试次数已到");
+        }
     }
 
     public static void startActionDisconnect(Context context) {
@@ -144,11 +168,12 @@ public class ConnectionService extends Service {
                         udp.startServer(port,fromListener);
                     }
 
-                    connectStateChange(STATE_CONNECTED);
+                    connectStateChange(getBaseContext(),STATE_CONNECTED);
+                    reconnectcount = 0;
                 }
                 else if(result==ConnectionListener.RESULT_FAILD)
                 {
-                    connectStateChange(STATE_CONNECT_FAILD);
+                    connectStateChange(getBaseContext(),STATE_CONNECT_FAILD);
                 }
 
             }
@@ -168,7 +193,6 @@ public class ConnectionService extends Service {
         if(dest_type.equals( DEST_BLUETOOTH))
         {
             bluetooth = new Bluetooth(null,destListener);
-            connectStateChange(STATE_CONNECTING);
         }
         else if(dest_type.equals( DEST_USBOTG))
         {
@@ -200,10 +224,10 @@ public class ConnectionService extends Service {
         sendBroadcast(i);
     }
 
-    private void connectStateChange(int state) {
+    public static void connectStateChange(Context context,int state) {
         Intent i = new Intent(ACTION_CONNECTION_STATE_CHANGE);
         i.putExtra(EXTRA_STATE,state);
-        sendBroadcast(i);
+        context.sendBroadcast(i);
     }
 
 
@@ -227,16 +251,14 @@ public class ConnectionService extends Service {
                 handleActionSend(intent);
             }
             else if (ACTION_CONNECT.equals(action)) {
-                handleActionConnect();
+                int delay = intent.getIntExtra(EXTRA_DELAY,0);
+                handleActionConnect(delay);
             }
             else if (ACTION_DISCONNECT.equals(action)) {
                 handleActionDisconnect();
             }
         }
-        else
-        {
-            handleActionConnect();
-        }
+
         return Service.START_STICKY;
     }
 
@@ -251,8 +273,14 @@ public class ConnectionService extends Service {
         stopSelf();
     }
 
-    private void handleActionConnect() {
-        connect();
+    private void handleActionConnect(int delay) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                connect();
+            }
+        }, delay);
+        Log.i(getClass().getSimpleName(),"延迟后连接 "+delay);
     }
 
     private void handleActionSend(Intent intent) {
@@ -270,6 +298,7 @@ public class ConnectionService extends Service {
         {
             connectUsb();
         }
+        connectStateChange(getBaseContext(),STATE_CONNECTING);
     }
 
     private void connectUsb()

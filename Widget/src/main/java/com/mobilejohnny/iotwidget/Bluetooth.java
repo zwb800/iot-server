@@ -1,20 +1,19 @@
-package com.mobilejohnny.iotserver;
+package com.mobilejohnny.iotwidget;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -43,7 +42,7 @@ public class Bluetooth {
 
 
 
-    public Bluetooth(Activity context,ConnectionListener listener)
+    public Bluetooth(Activity context, ConnectionListener listener)
     {
         this.listener = listener;
         adapter = BluetoothAdapter.getDefaultAdapter();
@@ -105,18 +104,19 @@ public class Bluetooth {
        return  socket.getOutputStream();
     }
 
-    public void send(byte[] data)
+    public boolean send(byte[] data)
     {
+        boolean result = false;
         if(socket!=null)
         {
-            int result = RESULT_FAILD;
+
             if (connected ||
                     createSocket()&&connectSocket()) {
                 try {
                     OutputStream out = socket.getOutputStream();
 
                     out.write(data);
-                    result = RESULT_SUCCESS;
+                    result = true;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -124,12 +124,12 @@ public class Bluetooth {
         }
         else
         {
-            listener.result(ConnectionListener.RESULT_FAILD,null,null);
             Log.e("BT","发送失败");
         }
+
+        return result;
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private boolean createSocket()  {
         boolean result = false;
 //        if(tryotherway)
@@ -137,7 +137,6 @@ public class Bluetooth {
 //            createSocket2();
 //            return;
 //        }
-
 
         try {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){

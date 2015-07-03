@@ -37,6 +37,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"/>
+<GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:columnCount="2"
+        android:rowCount="1"
+        android:orientation="horizontal">
+    <CheckBox
+
+            android:text="远程"
+            android:id="@+id/cbxRemote"
+            android:layout_column="0"
+            android:layout_gravity="fill"
+            android:layout_row="0"
+            android:layout_width="150dp"/>
+    <CheckBox
+            android:text="蓝牙"
+            android:id="@+id/cbxBluetooth"
+            android:layout_column="1"
+            android:layout_gravity="fill"
+            android:layout_row="0"/>
+</GridLayout>
+
+
 
     <Button
             android:id="@+id/add_button"

@@ -1,6 +1,7 @@
 package com.mobilejohnny.iotserver;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.*;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
@@ -31,7 +32,6 @@ public class MainActivity extends ActionBarActivity  {
     // 此TAG在adb logcat中检索自己所需要的信息， 只需在命令行终端输入 adb logcat | grep
     // com.xiaomi.mipushdemo
     public static final String TAG = "xmpush";
-    private static final String ACTION_BLUETOOTH_CONNECT_RESULT = "com.mobilejohnny.iotserver.action.BLUETOOTH_CONNECT_RESULT";
 
     Receiver receiver = null;
 
@@ -66,7 +66,7 @@ public class MainActivity extends ActionBarActivity  {
 
         readPreference();
 
-        ConnectionService.startActionConnect(this);
+        ConnectionService.startActionConnect(this,0);
 
         txtRX = (TextView)findViewById(R.id.txt_rx);
         txtTX = (TextView)findViewById(R.id.txt_tx);
@@ -189,17 +189,13 @@ public class MainActivity extends ActionBarActivity  {
         LocalBroadcastManager.getInstance(context).sendBroadcast(i);
     }
 
-    public static void startActionBluetoothConnectResult(Context context,int result) {
-        Intent i = new Intent(ACTION_BLUETOOTH_CONNECT_RESULT);
-        i.putExtra(ConnectionService.EXTRA_MESSAGE, result);
-        context.sendBroadcast(i);
-    }
+
 
     private class Receiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
-
-            if(intent.getAction().equals(ConnectionService.ACTION_TX)) {
+            String action = intent.getAction();
+            if(action.equals(ConnectionService.ACTION_TX)) {
                 final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_MESSAGE));
                 handler.post(new Runnable() {
                     @Override
@@ -208,7 +204,7 @@ public class MainActivity extends ActionBarActivity  {
                     }
                 });
             }
-            else if(intent.getAction().equals(ConnectionService.ACTION_RX)) {
+            else if(action.equals(ConnectionService.ACTION_RX)) {
                 final String str = StringUtils.convertToString(intent.getByteArrayExtra(ConnectionService.EXTRA_MESSAGE));
                 handler.post(new Runnable() {
                     @Override
@@ -217,7 +213,8 @@ public class MainActivity extends ActionBarActivity  {
                     }
                 });
             }
-            else if(intent.getAction().equals(ConnectionService.ACTION_CONNECTION_STATE_CHANGE)) {
+            else if(action.equals(ConnectionService.ACTION_CONNECTION_STATE_CHANGE))
+            {
                 final int state = intent.getIntExtra(ConnectionService.EXTRA_STATE, ConnectionService.STATE_CONNECT_FAILD);
 
                 handler.post(new Runnable() {
@@ -230,12 +227,13 @@ public class MainActivity extends ActionBarActivity  {
                             case ConnectionService.STATE_CONNECT_FAILD:msg = "连接失败";break;
                             case ConnectionService.STATE_CONNECTED:msg = "已连接";break;
                             case ConnectionService.STATE_CONNECTING:msg = "连接中";break;
+                            case ConnectionService.STATE_DISCONNECTED:msg = "已断开";break;
                         }
                         txtStatus.setText(bluetoothDeviceName+" "+msg);
                     }
                 });
             }
-            else if(intent.getAction().equals(ConnectionService.ACTION_XMPUSH_REGISTED)) {
+            else if(action.equals(ConnectionService.ACTION_XMPUSH_REGISTED)) {
                 final String regid = intent.getStringExtra(ConnectionService.EXTRA_MESSAGE);
                 handler.post(new Runnable() {
                     @Override
@@ -243,10 +241,6 @@ public class MainActivity extends ActionBarActivity  {
                         txtRegID.setText(regid);
                     }
                 });
-
-            }
-            else if(intent.getAction().equals(ACTION_BLUETOOTH_CONNECT_RESULT)) {
-
             }
         }
     }
