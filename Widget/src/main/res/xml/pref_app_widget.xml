@@ -1,0 +1,37 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceCategory
+        android:title="Connection Mode">
+
+    <com.mobilejohnny.iotwidget.BluetoothDeviceListActivity
+            android:icon="@android:drawable/stat_sys_data_bluetooth"
+            android:key="device_name"
+            android:title="Bluetooth Device"/>
+
+    <EditTextPreference
+            android:icon="@android:drawable/ic_menu_directions"
+            android:key="port"
+            android:selectAllOnFocus="true"
+            android:title="文本"
+            android:inputType="numberDecimal"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:maxLength="6"
+            android:defaultValue=""/>
+    <EditTextPreference
+            android:icon="@android:drawable/ic_menu_directions"
+            android:key="port"
+            android:selectAllOnFocus="true"
+            android:title="值"
+            android:inputType="numberDecimal"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:maxLength="6"
+            android:defaultValue=""/>
+    <CheckBoxPreference
+        android:key="remote"
+        android:title="远程" />
+    <CheckBoxPreference
+            android:key="bluetooth"
+            android:title="蓝牙"/>
+</PreferenceCategory>
+</PreferenceScreen>

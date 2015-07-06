@@ -2,6 +2,7 @@ package com.mobilejohnny.iotwidget;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,6 +38,8 @@ public class BluetoothService extends Service {
     public static final String ACTION_CONNECTION_SEND_STATE = "com.mobilejohnny.iotwidget.action.CONNECTION_SEND_STATE";
 
     public static final String EXTRA_STATE = "com.mobilejohnny.iotwidget.extra.STATE";
+    public static final String EXTRA_DEVICENAME = "com.mobilejohnny.iotwidget.extra.EXTRA_DEVICENAME";
+    public static final String EXTRA_APPWIDGETID = "com.mobilejohnny.iotwidget.extra.EXTRA_APPWIDGETID";
 
     public static final int STATE_CONNECTING = 1;
     public static final int STATE_CONNECTED = 2;
@@ -51,45 +54,12 @@ public class BluetoothService extends Service {
 
     private static int reconnectcount;
 
-    public static void startActionSend(Context context,int appWidgetID, byte[] msg) {
+    public static void startActionSend(Context context,int appWidgetID,String deviceName, byte[] msg) {
         Intent intent = new Intent(context, BluetoothService.class);
-        intent.putExtra(ButtonAppWidget.EXTRA_APPWIDGETID,appWidgetID);
+        intent.putExtra(EXTRA_APPWIDGETID,appWidgetID);
+        intent.putExtra(EXTRA_DEVICENAME,deviceName);
         intent.putExtra(EXTRA_MESSAGE, msg);
         intent.setAction(ACTION_SEND);
-        context.startService(intent);
-    }
-
-    public static void startActionConnect(Context context,int delay) {
-        Intent intent = new Intent(context, BluetoothService.class);
-        intent.setAction(ACTION_CONNECT);
-        intent.putExtra(EXTRA_DELAY,delay);
-        context.startService(intent);
-    }
-
-    public static void startActionReconnect(Context context)
-    {
-        if(reconnectcount<MAX_RECONNECT)
-        {
-           int delay = 1;
-            for (int i=0;i<reconnectcount;i++)
-            {
-                delay *= 2;
-            }
-            delay = Math.min( delay*3000,500000);//最大重连间隔5分钟
-
-            startActionConnect(context,delay);//三秒后重试
-            reconnectcount++;
-        }
-        else
-        {
-            Log.i("ConnectionService","重试次数已到");
-        }
-    }
-
-    public static void startActionDisconnect(Context context) {
-
-        Intent intent = new Intent(context, BluetoothService.class);
-        intent.setAction(ACTION_DISCONNECT);
         context.startService(intent);
     }
 
@@ -128,14 +98,15 @@ public class BluetoothService extends Service {
 
     public static void connectStateChange(Context context,int state) {
         Intent i = new Intent(ACTION_CONNECTION_STATE_CHANGE);
-        i.putExtra(EXTRA_STATE,state);
+        i.putExtra(EXTRA_STATE, state);
         context.sendBroadcast(i);
     }
 
 
     @Override
     public void onDestroy() {
-        handleActionDisconnect();
+        bluetooth.close();
+        bluetooth = null;
         super.onDestroy();
     }
 
@@ -152,53 +123,29 @@ public class BluetoothService extends Service {
             if (ACTION_SEND.equals(action)) {
                 handleActionSend(intent);
             }
-            else if (ACTION_CONNECT.equals(action)) {
-                int delay = intent.getIntExtra(EXTRA_DELAY,0);
-                handleActionConnect(delay);
-            }
-            else if (ACTION_DISCONNECT.equals(action)) {
-                handleActionDisconnect();
-            }
         }
 
         return Service.START_STICKY;
     }
 
-    private void handleActionDisconnect() {
-
-        if(bluetooth!=null)
-            bluetooth.close();
-
-        stopSelf();
-    }
-
-    private void handleActionConnect(int delay) {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                connect();
-            }
-        }, delay);
-        Log.i(getClass().getSimpleName(),"延迟后连接 "+delay);
-    }
 
     private void handleActionSend(Intent intent) {
 
-        byte[] data = intent.getByteArrayExtra(EXTRA_MESSAGE);
-        send(data);
-    }
+        final byte[] data = intent.getByteArrayExtra(EXTRA_MESSAGE);
+        final String deviceName = intent.getStringExtra(EXTRA_DEVICENAME);
+        final int appWidgetID = intent.getIntExtra(EXTRA_APPWIDGETID,-1);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(!bluetooth.send(deviceName,data))
+                {
+                    Log.e(BluetoothService.this.getClass().getSimpleName(),"发送失败");
+                }
+                ButtonAppWidget.startActionClicked(BluetoothService.this,appWidgetID);
+                bluetooth.close();
+            }
+        }).start();
 
-    private void connect() {
-        bluetooth.connect(bluetoothDeviceName);
-        connectStateChange(getBaseContext(),STATE_CONNECTING);
-    }
 
-    private void send(byte[] data) {
-
-
-        if(bluetooth.send(data))
-        {
-
-        }
     }
 }

@@ -3,6 +3,8 @@
     package="com.mobilejohnny.iotwidget" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application
         android:allowBackup="true"
@@ -11,14 +13,11 @@
         android:theme="@style/AppTheme" >
         <activity
                 android:name=".ColorSelectDialog"
-                android:label="@string/title_activity_color_select_dialog" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </activity>
+                android:label="@string/title_activity_color_select_dialog" ></activity>
         <receiver android:name=".ButtonAppWidget" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.mobilejohnny.iotwidget.ButtonAppWidget.ACTION_WIDGET_CLICK" />
             </intent-filter>
 
             <meta-data
@@ -26,21 +25,21 @@
                 android:resource="@xml/button_app_widget_info" />
         </receiver>
 
-        <activity android:name=".ButtonAppWidgetConfigureActivity" >
+        <activity android:name=".ConfigureActivity" >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+        <activity android:name=".BluetoothDeviceListActivity"></activity>
 
-        <receiver
-            android:name=".ClickReceiver"
-            android:enabled="true"
-            android:exported="true" >
-            <intent-filter>
-                <action android:name="com.mobilejohnny.iotwidget.ButtonAppWidget.ACTION_WIDGET_CLICK" />
-            </intent-filter>
-        </receiver>
+        <!--<receiver-->
+            <!--android:name=".ClickReceiver"-->
+            <!--android:enabled="true"-->
+            <!--android:exported="true" >-->
+            <!--<intent-filter>-->
+                <!--<action android:name="com.mobilejohnny.iotwidget.ButtonAppWidget.ACTION_WIDGET_CLICK" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
 
 
 

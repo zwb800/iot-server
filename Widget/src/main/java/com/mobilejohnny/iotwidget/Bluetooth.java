@@ -38,9 +38,6 @@ public class Bluetooth {
     final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private ConnectionListener listener;
     private boolean connected;
-    private AsyncTask<Void, Void, Integer> task;
-
-
 
     public Bluetooth(Activity context, ConnectionListener listener)
     {
@@ -55,8 +52,9 @@ public class Bluetooth {
         }
     }
 
-    public void connect(String deviceName) {
+    public boolean connect(String deviceName) {
 
+        boolean result = false;
         if(connected)
         {
             close();
@@ -69,62 +67,37 @@ public class Bluetooth {
         }
         else if(device!=null){
             Log.i("BT","已找到绑定设备");
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    int result = RESULT_FAILD;
-                    if(createSocket()) {
-                        if(connectSocket()){
-                            result = RESULT_SUCCESS;
-                        }
-                    }
-                    if(result==RESULT_SUCCESS) {
-                        try {
-                            listener.result(ConnectionListener.RESULT_SUCCESS, socket.getInputStream(), socket.getOutputStream());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    else
-                    {
-                        listener.result(ConnectionListener.RESULT_FAILD,null,null);
-                    }
-                }
-            }).start();
-        }
-        else
-        {
-            listener.result(ConnectionListener.RESULT_DEVICE_NOTFOUND, null, null);
-            Log.e("BT", "未找到绑定设备");
-        }
-    }
 
-
-    public OutputStream getOutputStream() throws IOException {
-       return  socket.getOutputStream();
-    }
-
-    public boolean send(byte[] data)
-    {
-        boolean result = false;
-        if(socket!=null)
-        {
-
-            if (connected ||
-                    createSocket()&&connectSocket()) {
-                try {
-                    OutputStream out = socket.getOutputStream();
-
-                    out.write(data);
+            if(createSocket()) {
+                if(connectSocket()){
                     result = true;
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
+
         }
         else
         {
-            Log.e("BT","发送失败");
+            Log.e("BT", "未找到绑定设备");
+        }
+        return  result;
+    }
+
+    public boolean send(String deviceName,byte[] data)
+    {
+        boolean result = false;
+        if(connected)
+        {
+            try {
+                OutputStream out = socket.getOutputStream();
+                out.write(data);
+                result = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(connect(deviceName))
+        {
+            result = send(deviceName,data);
         }
 
         return result;
@@ -256,12 +229,5 @@ public class Bluetooth {
         return devices;
 
     }
-
-    public InputStream getInputStream() throws IOException {
-        return socket.getInputStream();
-    }
-
-
-
 }
 
