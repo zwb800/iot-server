@@ -46,19 +46,20 @@ public class ButtonAppWidget extends AppWidgetProvider {
 
         if(action.equals(ACTION_WIDGET_CLICK))
         {
+            int appWdigetID = intent.getIntExtra(ButtonAppWidget.EXTRA_APPWIDGETID, -1);
             String value = intent.getStringExtra(EXTRA_VALUE);
             Boolean remote = intent.getBooleanExtra(EXTRA_ENABLE_REMOTE, true);
-            Boolean bluetooth = intent.getBooleanExtra(EXTRA_ENABLE_BLUETOOTH,false);
+            Boolean bluetooth = intent.getBooleanExtra(EXTRA_ENABLE_BLUETOOTH, false);
             String deviceName = intent.getStringExtra(EXTRA_DEVICENAME);
 
-            int appWdigetID = intent.getIntExtra(ButtonAppWidget.EXTRA_APPWIDGETID, 0);
             updateButton(context,appWdigetID,true);
 
             if(remote)
                 sendMessageViaXMPush(context, appWdigetID, value);
             if(bluetooth)
                 sendMessageViaBluetooth(context, appWdigetID, deviceName, value);
-        }else if(action.equals(ACTION_WIDGET_CLICKED))
+        }
+        else if(action.equals(ACTION_WIDGET_CLICKED))
         {
             int appWdigetID = intent.getIntExtra(ButtonAppWidget.EXTRA_APPWIDGETID, 0);
             updateButton(context, appWdigetID, false);
@@ -131,7 +132,7 @@ public class ButtonAppWidget extends AppWidgetProvider {
         // When the user deletes the widget, delete the preference associated with it.
         final int N = appWidgetIds.length;
         for (int i = 0; i < N; i++) {
-            ConfigureActivity.deleteSetting(context, appWidgetIds[i]);
+            WidgetSetting.deleteSetting(context, appWidgetIds[i]);
         }
     }
 
@@ -148,12 +149,15 @@ public class ButtonAppWidget extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId,boolean processing) {
 
-       WidgetSetting setting = ConfigureActivity.loadSetting(context, appWidgetId);
+       WidgetSetting setting = WidgetSetting.loadSetting(context, appWidgetId);
 
         int requestCode = appWidgetId;//按widget来区分intent
         Intent intent  = new Intent(ACTION_WIDGET_CLICK);
         intent.putExtra(EXTRA_APPWIDGETID,appWidgetId);
         intent.putExtra(EXTRA_VALUE,setting.value);
+        intent.putExtra(EXTRA_ENABLE_BLUETOOTH,setting.enableBluetooth);
+        intent.putExtra(EXTRA_ENABLE_REMOTE,setting.enableRemote);
+        intent.putExtra(EXTRA_DEVICENAME,setting.deviceName);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context,requestCode,intent,PendingIntent.FLAG_UPDATE_CURRENT);
         // Construct the RemoteViews object
@@ -173,7 +177,6 @@ public class ButtonAppWidget extends AppWidgetProvider {
         views.setInt(R.id.appwidget_button, "setBackgroundResource", setting.color);
         views.setOnClickPendingIntent(R.id.appwidget_button,pendingIntent);
         views.setTextViewText(R.id.appwidget_button, setting.buttonLabel);
-
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);

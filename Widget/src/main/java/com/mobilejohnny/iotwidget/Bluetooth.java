@@ -82,7 +82,7 @@ public class Bluetooth {
         return  result;
     }
 
-    public boolean send(String deviceName,byte[] data)
+    public synchronized boolean send(String deviceName,byte[] data)
     {
         boolean result = false;
         if(connected)
@@ -90,6 +90,7 @@ public class Bluetooth {
             try {
                 OutputStream out = socket.getOutputStream();
                 out.write(data);
+                Log.i(getClass().getSimpleName(),"已发送");
                 result = true;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -137,9 +138,6 @@ public class Bluetooth {
         }
         return result;
     }
-
-
-
 
     private static boolean  tryotherway =  false;
     private Boolean connectSocket() {
@@ -220,7 +218,7 @@ public class Bluetooth {
         return device;
     }
 
-    public static Set<BluetoothDevice> getBondedDevices() {
+    public Set<BluetoothDevice> getBondedDevices() {
 
         Set<BluetoothDevice> devices = null;
         if(adapter!=null)

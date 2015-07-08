@@ -35,7 +35,7 @@ public class ConnectionService extends Service {
     public static final String ACTION_RX = "com.mobilejohnny.iotserver.action.RX";
     public static final String ACTION_TX = "com.mobilejohnny.iotserver.action.TX";
     public static final String EXTRA_MESSAGE = "com.mobilejohnny.iotserver.extra.PARAM_MESSAGE";
-    public static final String ACTION_XMPUSH_REGISTED = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
+
     public static final String ACTION_CONNECTION_STATE_CHANGE = "com.mobilejohnny.iotserver.action.CONNECTION_STATE_CHANGE";
     public static final String EXTRA_STATE = "com.mobilejohnny.iotserver.extra.STATE";
 
@@ -259,7 +259,7 @@ public class ConnectionService extends Service {
             }
         }
 
-        return Service.START_STICKY;
+        return Service.START_NOT_STICKY;
     }
 
     private void handleActionDisconnect() {

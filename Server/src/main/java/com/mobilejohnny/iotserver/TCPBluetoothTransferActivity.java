@@ -1,5 +1,6 @@
 package com.mobilejohnny.iotserver;
 
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
@@ -77,6 +78,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
     private TextView txtSpeed;
     private TextView txtAccuracy;
     private boolean enableGPS;
+    private View layoutGPS;
 
 
     @Override
@@ -100,6 +102,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         txtDestType = (TextView)findViewById(R.id.txt_dest_type);
         txtStatus = (TextView) findViewById(R.id.txt_status);
         txtIP = (TextView)findViewById(R.id.txt_ip);
+        layoutGPS = findViewById(R.id.gpsLayout);
         txtSatellite = (TextView)findViewById(R.id.txt_satellite);
         txtLongitude = (TextView)findViewById(R.id.txt_longitude);
         txtLatitude = (TextView)findViewById(R.id.txt_latitude);
@@ -264,7 +267,9 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
                 }
             };
             locationManager.addGpsStatusListener(gpsListener);
+            layoutGPS.setVisibility(View.VISIBLE);
         }
+
     }
 
     private void updateGPS(double longitude, double latitude, double altitude, float speed,float accuracy) {
@@ -310,6 +315,7 @@ public class TCPBluetoothTransferActivity extends ActionBarActivity {
         enableGPS = preferences.getBoolean(getString(R.string.key_enable_gps), false);
     }
 
+    @TargetApi(12)
     private void connectUsb()
     {
         HashMap<String, UsbDevice> deviceSet =  usbManager.getDeviceList();

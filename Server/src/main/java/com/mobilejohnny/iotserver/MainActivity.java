@@ -56,6 +56,8 @@ public class MainActivity extends ActionBarActivity  {
     private int port = 8080;//监听端口
     private boolean enableGPS;//发送GPS数据 用于Multiwii
 
+    public static final String ACTION_XMPUSH_REGISTED = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,9 +85,11 @@ public class MainActivity extends ActionBarActivity  {
         txtConnectType.setText(connection_type);
         txtDestType.setText(dest_type);
 
-        MiPushClient.registerPush(this, APP_ID, APP_KEY);
+
 
         setLogger();
+
+
     }
 
     private void readPreference() {
@@ -158,6 +162,8 @@ public class MainActivity extends ActionBarActivity  {
         super.onStart();
 
         registerReceiver();
+
+        MiPushClient.registerPush(this, APP_ID, APP_KEY);
     }
 
     @Override
@@ -175,21 +181,19 @@ public class MainActivity extends ActionBarActivity  {
         intentFilter.addAction(ConnectionService.ACTION_RX);
         intentFilter.addAction(ConnectionService.ACTION_TX);
         intentFilter.addAction(ConnectionService.ACTION_CONNECTION_STATE_CHANGE);
-        intentFilter.addAction(ConnectionService.ACTION_XMPUSH_REGISTED);
+        intentFilter.addAction(ACTION_XMPUSH_REGISTED);
         intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         intentFilter.addAction(UsbHostActivity.USB_PERMISSION);
 
         registerReceiver(receiver, intentFilter);
     }
 
-    public static void startActionXMPush_Registed(Context context,String reg_id)
+    public static void startActionXMPushRegisted(Context context,String reg_id)
     {
-        Intent i = new Intent(ConnectionService.ACTION_XMPUSH_REGISTED);
+        Intent i = new Intent(ACTION_XMPUSH_REGISTED);
         i.putExtra(ConnectionService.EXTRA_MESSAGE, reg_id);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(i);
+        context.sendBroadcast(i);
     }
-
-
 
     private class Receiver extends BroadcastReceiver{
         @Override
@@ -233,8 +237,10 @@ public class MainActivity extends ActionBarActivity  {
                     }
                 });
             }
-            else if(action.equals(ConnectionService.ACTION_XMPUSH_REGISTED)) {
+            else if(action.equals(ACTION_XMPUSH_REGISTED)) {
+
                 final String regid = intent.getStringExtra(ConnectionService.EXTRA_MESSAGE);
+                Log.i(getClass().getSimpleName(),regid);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {

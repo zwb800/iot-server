@@ -58,15 +58,12 @@ public class XMPushReceiver extends PushMessageReceiver {
 //        String cmdArg2 = ((arguments != null && arguments.size() > 1) ? arguments.get(1) : null);
         String log = "";
 
-
-
         if(message.getResultCode()== ErrorCode.SUCCESS)
         {
             if(MiPushClient.COMMAND_REGISTER.equals(command))
             {
                 String reg_id = arguments.get(0);
-                MainActivity.startActionXMPush_Registed(context,reg_id);
-
+                MainActivity.startActionXMPushRegisted(context,reg_id);
                 Log.d(getClass().getSimpleName(),"RegID:"+reg_id);
             }
         }

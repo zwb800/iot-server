@@ -19,7 +19,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="按钮文本"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="8dp"
+            />
 
     <EditText
             android:id="@+id/button_label"

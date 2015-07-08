@@ -137,10 +137,12 @@ public class BluetoothService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
                 if(!bluetooth.send(deviceName,data))
                 {
                     Log.e(BluetoothService.this.getClass().getSimpleName(),"发送失败");
                 }
+
                 ButtonAppWidget.startActionClicked(BluetoothService.this,appWidgetID);
                 bluetooth.close();
             }
