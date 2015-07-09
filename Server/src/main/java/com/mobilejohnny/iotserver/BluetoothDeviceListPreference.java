@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Build;
 import android.preference.ListPreference;
 import android.util.AttributeSet;
+import com.mobilejohnny.iotserver.utils.Bluetooth;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -36,10 +37,14 @@ public class BluetoothDeviceListPreference extends ListPreference {
         bluetooth = new Bluetooth(null,null);
         Set<BluetoothDevice> devices = bluetooth.getBondedDevices();
         ArrayList<CharSequence> listEntries = new ArrayList<CharSequence>();
-        for (BluetoothDevice device : devices)
+        if(devices!=null && devices.size()>0)
         {
-            listEntries.add(device.getName());
+            for (BluetoothDevice device : devices)
+            {
+                listEntries.add(device.getName());
+            }
         }
+
 
 
         CharSequence[] arrEntries = listEntries.toArray(new CharSequence[listEntries.size()]);

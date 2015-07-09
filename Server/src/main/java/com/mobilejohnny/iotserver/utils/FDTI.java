@@ -1,7 +1,8 @@
-package com.mobilejohnny.iotserver;
+package com.mobilejohnny.iotserver.utils;
 
 import android.hardware.usb.*;
 import android.util.Log;
+import com.mobilejohnny.iotserver.ConnectionListener;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,7 +1,8 @@
-package com.mobilejohnny.iotserver;
+package com.mobilejohnny.iotserver.utils;
 
 
-import android.util.Log;
+import com.mobilejohnny.iotserver.ConnectionListener;
+import com.mobilejohnny.iotserver.utils.Bluetooth;
 
 import java.io.IOException;
 import java.io.InputStream;

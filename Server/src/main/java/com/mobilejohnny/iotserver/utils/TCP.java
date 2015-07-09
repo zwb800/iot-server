@@ -1,11 +1,11 @@
-package com.mobilejohnny.iotserver;
+package com.mobilejohnny.iotserver.utils;
 
-import com.mobilejohnny.iotserver.ConnectThread;
+import com.mobilejohnny.iotserver.ConnectionListener;
+import com.mobilejohnny.iotserver.utils.Bluetooth;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 
 /**
  * Created by admin2 on 2015/3/20.

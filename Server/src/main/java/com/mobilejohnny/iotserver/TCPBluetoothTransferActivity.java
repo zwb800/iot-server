@@ -3,7 +3,6 @@ package com.mobilejohnny.iotserver;
 import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothSocket;
 import android.content.*;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
@@ -20,13 +19,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import com.mobilejohnny.iotserver.utils.*;
 import com.xiaomi.mipush.sdk.MiPushClient;
-import org.w3c.dom.Text;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.HashMap;
 import java.util.Iterator;
 

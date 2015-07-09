@@ -32,6 +32,7 @@ public class MainActivity extends ActionBarActivity  {
     // 此TAG在adb logcat中检索自己所需要的信息， 只需在命令行终端输入 adb logcat | grep
     // com.xiaomi.mipushdemo
     public static final String TAG = "xmpush";
+    public boolean MiPush_Registed = false;
 
     Receiver receiver = null;
 
@@ -85,11 +86,7 @@ public class MainActivity extends ActionBarActivity  {
         txtConnectType.setText(connection_type);
         txtDestType.setText(dest_type);
 
-
-
         setLogger();
-
-
     }
 
     private void readPreference() {
@@ -163,7 +160,10 @@ public class MainActivity extends ActionBarActivity  {
 
         registerReceiver();
 
-        MiPushClient.registerPush(this, APP_ID, APP_KEY);
+        if(!MiPush_Registed)
+        {
+            MiPushClient.registerPush(this, APP_ID, APP_KEY);
+        }
     }
 
     @Override
@@ -173,6 +173,13 @@ public class MainActivity extends ActionBarActivity  {
         receiver = null;
         handler = null;
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        MiPushClient.unregisterPush(this);
+        super.onDestroy();
+
     }
 
     private void registerReceiver() {
@@ -240,10 +247,12 @@ public class MainActivity extends ActionBarActivity  {
             else if(action.equals(ACTION_XMPUSH_REGISTED)) {
 
                 final String regid = intent.getStringExtra(ConnectionService.EXTRA_MESSAGE);
+                MiPush_Registed = true;
                 Log.i(getClass().getSimpleName(),regid);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
+
                         txtRegID.setText(regid);
                     }
                 });

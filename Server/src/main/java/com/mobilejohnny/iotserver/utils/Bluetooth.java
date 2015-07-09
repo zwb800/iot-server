@@ -1,4 +1,4 @@
-package com.mobilejohnny.iotserver;
+package com.mobilejohnny.iotserver.utils;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
+import com.mobilejohnny.iotserver.ConnectionListener;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;

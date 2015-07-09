@@ -9,10 +9,15 @@ import android.content.SharedPreferences;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import com.mobilejohnny.iotserver.utils.Bluetooth;
+import com.mobilejohnny.iotserver.utils.FDTI;
+import com.mobilejohnny.iotserver.utils.TCP;
+import com.mobilejohnny.iotserver.utils.UDP;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -122,7 +127,11 @@ public class ConnectionService extends Service {
     public void onCreate() {
         super.onCreate();
         readPreference();
-        usbManager = (UsbManager) getSystemService(USB_SERVICE);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1){
+            usbManager = (UsbManager) getSystemService(USB_SERVICE);
+        }
+
         locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
 
         ConnectionListener destListener = new ConnectionListener(){

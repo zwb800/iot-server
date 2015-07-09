@@ -1,4 +1,4 @@
-package com.mobilejohnny.iotserver;
+package com.mobilejohnny.iotserver.utils;
 
 import android.util.Log;
 
