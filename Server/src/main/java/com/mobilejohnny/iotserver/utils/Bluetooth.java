@@ -117,6 +117,7 @@ public class Bluetooth {
                     OutputStream out = socket.getOutputStream();
 
                     out.write(data);
+                    Log.i(getClass().getSimpleName(),"send data:"+new String(data));
                     result = RESULT_SUCCESS;
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -145,6 +146,7 @@ public class Bluetooth {
                 //sdk 2.3以上需要用此方法连接，否则连接不上，会报 java.io.IOException: Connection refused 异常
                 socket = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
             }else {
+//                socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
                 socket = (BluetoothSocket)device.getClass()
                         .getMethod("createRfcommSocket",new Class[] { int.class })
                         .invoke(device, 1);

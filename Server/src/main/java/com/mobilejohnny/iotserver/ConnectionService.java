@@ -1,5 +1,6 @@
 package com.mobilejohnny.iotserver;
 
+import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -82,7 +83,6 @@ public class ConnectionService extends Service {
         intent.putExtra(EXTRA_MESSAGE, msg);
         intent.setAction(ACTION_SEND);
         context.startService(intent);
-
     }
 
     public static void startActionConnect(Context context,int delay) {
@@ -310,6 +310,7 @@ public class ConnectionService extends Service {
         connectStateChange(getBaseContext(),STATE_CONNECTING);
     }
 
+    @TargetApi(12)
     private void connectUsb()
     {
         HashMap<String, UsbDevice> deviceSet =  usbManager.getDeviceList();
