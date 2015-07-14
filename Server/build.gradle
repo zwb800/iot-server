@@ -36,4 +36,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:21+'
     compile 'com.google.android.gms:play-services:4.0+'
     compile 'com.android.support:gridlayout-v7:21+'
+    compile 'ch.acra:acra:4.6.2'
 }
