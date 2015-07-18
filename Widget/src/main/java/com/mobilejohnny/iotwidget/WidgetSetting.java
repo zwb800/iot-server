@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
  */
 public class WidgetSetting {
 
+
+    public String remoteDeviceID;
     public int color;
     public String buttonLabel;
     public String value;
@@ -23,13 +25,16 @@ public class WidgetSetting {
     private static final String PREF_PREFIX_BUTTON_DEVICE_NAME = PREF_PREFIX_KEY+ "device_name";
     private static final String PREF_PREFIX_BUTTON_ENABLE_REMOTE = PREF_PREFIX_KEY+ "enable_remote";
     private static final String PREF_PREFIX_BUTTON_ENABLE_BLUETOOTH = PREF_PREFIX_KEY+ "enable_bluetooth";
+    private static final String PREF_PREFIX_BUTTON_REMOTE_DEVICEID = PREF_PREFIX_KEY+ "remote_deviceid";
 
 
     public WidgetSetting()
     {
 
     }
-    public WidgetSetting(int color,String label,String value,String deviceName,boolean enableRemote,boolean enableBluetooth)
+    public WidgetSetting(int color,String label,String value,String deviceName,boolean enableRemote,
+                         boolean enableBluetooth,
+                         String remoteDeviceID)
     {
         this.color = color;
         buttonLabel = label;
@@ -37,6 +42,7 @@ public class WidgetSetting {
         this.deviceName = deviceName;
         this.enableRemote = enableRemote;
         this.enableBluetooth = enableBluetooth;
+        this.remoteDeviceID = remoteDeviceID;
     }
 
 
@@ -48,6 +54,7 @@ public class WidgetSetting {
         prefs.putString(PREF_PREFIX_BUTTON_DEVICE_NAME + appWidgetId, setting.deviceName);
         prefs.putBoolean(PREF_PREFIX_BUTTON_ENABLE_REMOTE + appWidgetId, setting.enableRemote);
         prefs.putBoolean(PREF_PREFIX_BUTTON_ENABLE_BLUETOOTH + appWidgetId, setting.enableBluetooth);
+        prefs.putString(PREF_PREFIX_BUTTON_REMOTE_DEVICEID+appWidgetId,setting.remoteDeviceID);
         prefs.commit();
     }
 
@@ -60,6 +67,7 @@ public class WidgetSetting {
         setting.deviceName = prefs.getString(PREF_PREFIX_BUTTON_DEVICE_NAME + appWidgetId, "");
         setting.enableBluetooth = prefs.getBoolean(PREF_PREFIX_BUTTON_ENABLE_BLUETOOTH + appWidgetId, false);
         setting.enableRemote = prefs.getBoolean(PREF_PREFIX_BUTTON_ENABLE_REMOTE+appWidgetId,false);
+        setting.remoteDeviceID = prefs.getString(PREF_PREFIX_BUTTON_REMOTE_DEVICEID+appWidgetId,"");
         return setting;
     }
 

@@ -58,6 +58,7 @@ public class MainActivity extends ActionBarActivity  {
     private boolean enableGPS;//发送GPS数据 用于Multiwii
 
     public static final String ACTION_XMPUSH_REGISTED = "com.mobilejohnny.iotserver.action.XMPUSH_REGISTER";
+    private TextView txtID;
 
 
     @Override
@@ -77,7 +78,7 @@ public class MainActivity extends ActionBarActivity  {
         txtDestType = (TextView)findViewById(R.id.txt_dest_type);
         txtStatus = (TextView) findViewById(R.id.txt_status);
         txtIP = (TextView)findViewById(R.id.txt_ip);
-        txtRegID = (TextView)findViewById(R.id.txt_regid);
+        txtID = (TextView)findViewById(R.id.txt_id);
 
         WifiManager wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
 
@@ -246,14 +247,13 @@ public class MainActivity extends ActionBarActivity  {
             }
             else if(action.equals(ACTION_XMPUSH_REGISTED)) {
 
-                final String regid = intent.getStringExtra(ConnectionService.EXTRA_MESSAGE);
+                final String id = intent.getStringExtra(ConnectionService.EXTRA_MESSAGE);
                 MiPush_Registed = true;
-                Log.i(getClass().getSimpleName(),regid);
+                Log.i(getClass().getSimpleName(),id);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-
-                        txtRegID.setText(regid);
+                        txtID.setText(id);
                     }
                 });
             }

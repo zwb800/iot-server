@@ -1,1 +1,1 @@
-include ':Widget', 'Server', ':Server'
+include ':Widget', ':Server'

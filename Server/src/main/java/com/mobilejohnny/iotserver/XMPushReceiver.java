@@ -1,6 +1,9 @@
 package com.mobilejohnny.iotserver;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,10 +12,23 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.JsonReader;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.mobilejohnny.iotserver.utils.Request;
 import com.xiaomi.mipush.sdk.*;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * 1、PushMessageReceiver是个抽象类，该类继承了BroadcastReceiver。
@@ -63,8 +79,18 @@ public class XMPushReceiver extends PushMessageReceiver {
             if(MiPushClient.COMMAND_REGISTER.equals(command))
             {
                 String reg_id = arguments.get(0);
-                MainActivity.startActionXMPushRegisted(context,reg_id);
-                Log.d(getClass().getSimpleName(),"RegID:"+reg_id);
+                ArrayList<NameValuePair> parameters = new ArrayList<>();
+                parameters.add(new BasicNameValuePair("regid", reg_id));
+
+                String content = Request.post(Constants.REG_URL,parameters);
+                try {
+                    JSONObject jsonObject = new JSONObject(content);
+                    int id = jsonObject.getInt("id");
+                    MainActivity.startActionXMPushRegisted(context, id+"");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
 

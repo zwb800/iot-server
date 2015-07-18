@@ -6,16 +6,18 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
-import com.xiaomi.xmpush.server.Constants;
-import com.xiaomi.xmpush.server.Message;
-import com.xiaomi.xmpush.server.Sender;
-import org.json.simple.parser.ParseException;
+import com.mobilejohnny.iotwidget.utils.Request;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -38,6 +40,7 @@ public class ButtonAppWidget extends AppWidgetProvider {
     private static final String EXTRA_ENABLE_BLUETOOTH = "enable_bluetooth";
     private static final String EXTRA_ENABLE_REMOTE = "enable_remote";
     public static final String EXTRA_DEVICENAME = "com.mobilejohnny.iotwidget.extra.EXTRA_DEVICENAME";
+    private static final String EXTRA_REMOTE_DEVICEID = "remote_deviceid";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -51,11 +54,12 @@ public class ButtonAppWidget extends AppWidgetProvider {
             Boolean remote = intent.getBooleanExtra(EXTRA_ENABLE_REMOTE, true);
             Boolean bluetooth = intent.getBooleanExtra(EXTRA_ENABLE_BLUETOOTH, false);
             String deviceName = intent.getStringExtra(EXTRA_DEVICENAME);
+            String remoteDeviceID = intent.getStringExtra(EXTRA_REMOTE_DEVICEID);
 
             updateButton(context,appWdigetID,true);
 
             if(remote)
-                sendMessageViaXMPush(context, appWdigetID, value);
+                sendMessageViaXMPush(context, appWdigetID,remoteDeviceID, value);
             if(bluetooth)
                 sendMessageViaBluetooth(context, appWdigetID, deviceName, value);
         }
@@ -71,7 +75,6 @@ public class ButtonAppWidget extends AppWidgetProvider {
         ButtonAppWidget.updateAppWidget(context, appWidgetManager, appWdigetID, processing);
     }
 
-
     public static void startActionClicked(Context context,int appWidgetID)
     {
         Intent intent = new Intent(ACTION_WIDGET_CLICKED);
@@ -83,36 +86,22 @@ public class ButtonAppWidget extends AppWidgetProvider {
         BluetoothService.startActionSend(context, appWidgetID, deviceName, value.getBytes());
     }
 
-    private void sendMessageViaXMPush(final Context context,final int appWidgetID,String msg)
+    private void sendMessageViaXMPush(final Context context, final int appWidgetID, String remoteDeviceID, String msg)
     {
-        Constants.useOfficial();
-        final Sender sender = new Sender(APP_SECRET);
-        final Message message = new Message.Builder()
-                .payload(msg)
-                .passThrough(1)
-                .timeToLive(0)
-                .restrictedPackageName(APP_PACKAGE)
-                .build();
-
-        new AsyncTask<Void, Void, Boolean>() {
+        final ArrayList<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair("id", remoteDeviceID));
+        parameters.add(new BasicNameValuePair("msg",msg));
+        new AsyncTask<Void,Void,Boolean>(){
             @Override
             protected Boolean doInBackground(Void... voids) {
-                boolean result = false;
-                try {
-                    sender.broadcastAllNoRetry(message);
-                    result = true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e(getClass().getSimpleName(),e.getMessage());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                return result;
+                String content = Request.post(Constants.SEND_URL, parameters);
+//                Log.i("",content);
+                return content.equals("true");
             }
 
             @Override
             protected void onPostExecute(Boolean b) {
-                updateButton(context,appWidgetID,false);
+                updateButton(context, appWidgetID, false);
                 Toast.makeText(context, "发送" + (b ? "成功" : "失败"), Toast.LENGTH_SHORT).show();
             }
         }.execute();
@@ -158,6 +147,7 @@ public class ButtonAppWidget extends AppWidgetProvider {
         intent.putExtra(EXTRA_ENABLE_BLUETOOTH,setting.enableBluetooth);
         intent.putExtra(EXTRA_ENABLE_REMOTE,setting.enableRemote);
         intent.putExtra(EXTRA_DEVICENAME,setting.deviceName);
+        intent.putExtra(EXTRA_REMOTE_DEVICEID,setting.remoteDeviceID);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context,requestCode,intent,PendingIntent.FLAG_UPDATE_CURRENT);
         // Construct the RemoteViews object

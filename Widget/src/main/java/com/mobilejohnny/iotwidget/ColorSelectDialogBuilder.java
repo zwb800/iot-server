@@ -7,10 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 
 
@@ -30,14 +27,16 @@ public class ColorSelectDialogBuilder  {
             R.color.user_icon_default_gray,
             R.color.user_icon_default_white,
     };
-    private final Activity context;
+    private final Context context;
     public GridView colorSelectList;
     private DialogInterface.OnClickListener listener;
     private AlertDialog alertDialog;
+    private LayoutInflater layoutInflater;
 
-    public ColorSelectDialogBuilder(Activity context)
+    public ColorSelectDialogBuilder(Context context)
     {
         this.context = context;
+        layoutInflater = LayoutInflater.from(context);
     }
 
     public void  setOnItemClickListener (DialogInterface.OnClickListener listener)
@@ -48,8 +47,7 @@ public class ColorSelectDialogBuilder  {
     public AlertDialog build() {
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
-        View view = context.getLayoutInflater().inflate(R.layout.activity_color_select_dialog, null);
-
+        View view = getLayoutInflater().inflate(R.layout.activity_color_select_dialog, null);
 
         colorSelectList = (GridView) view.findViewById(R.id.colorSelectList);
 
@@ -79,7 +77,7 @@ public class ColorSelectDialogBuilder  {
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
             if (view == null) {
-                view = context.getLayoutInflater().inflate(R.layout.color_item, viewGroup, false);
+                view = getLayoutInflater().inflate(R.layout.color_item, viewGroup, false);
             }
 
             view.setBackgroundColor(context.getResources().getColor(getItem(i)));
@@ -96,4 +94,8 @@ public class ColorSelectDialogBuilder  {
 
         }
     };
+
+    public LayoutInflater getLayoutInflater() {
+        return layoutInflater;
+    }
 }

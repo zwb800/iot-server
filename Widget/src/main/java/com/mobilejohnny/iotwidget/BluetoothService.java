@@ -1,23 +1,16 @@
 package com.mobilejohnny.iotwidget;
 
-import android.app.PendingIntent;
 import android.app.Service;
-import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.hardware.camera2.params.BlackLevelPattern;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-import android.location.LocationManager;
-import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import com.mobilejohnny.iotwidget.utils.Bluetooth;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 
 /**
  * An {@link android.app.IntentService} subclass for handling asynchronous task requests in

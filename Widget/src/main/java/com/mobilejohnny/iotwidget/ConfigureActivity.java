@@ -7,12 +7,11 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.*;
+import com.mobilejohnny.iotwidget.utils.Bluetooth;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -32,6 +31,7 @@ public class ConfigureActivity extends Activity {
     private TextView txtDeviceName;
     private CheckBox cbxRemote;
     private CheckBox cbxBluetooth;
+    private EditText txtRemote;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -57,6 +57,7 @@ public class ConfigureActivity extends Activity {
         findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
         cbxRemote = (CheckBox)findViewById(R.id.cbxRemote);
         cbxBluetooth = (CheckBox)findViewById(R.id.cbxBluetooth);
+        txtRemote = (EditText)findViewById(R.id.txtRemote);
 
         WidgetSetting setting = WidgetSetting.loadSetting(ConfigureActivity.this, mAppWidgetId);
 
@@ -64,6 +65,7 @@ public class ConfigureActivity extends Activity {
         txtButtonLabel.setText(setting.buttonLabel);
         txtDeviceName.setOnClickListener(deviceClickListener);
         color = R.color.blue;
+        btnColor.setBackgroundColor(getResources().getColor(color));
     }
 
     private int getAppWidgetID() {
@@ -79,8 +81,9 @@ public class ConfigureActivity extends Activity {
     private DialogInterface.OnClickListener colorSelectedListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialogInterface, int i) {
-            btnColor.setBackgroundColor(getResources().getColor(i));
+
             color = i;
+            btnColor.setBackgroundColor(getResources().getColor(color));
             dialogInterface.dismiss();
         }
     };
@@ -99,18 +102,9 @@ public class ConfigureActivity extends Activity {
         @Override
         public void onClick(View view) {
 
-            Bluetooth bluetooth = new Bluetooth(null,null);
-            Set<BluetoothDevice> devices = bluetooth.getBondedDevices();
-            ArrayList<CharSequence> listEntries = new ArrayList<>();
-            for (BluetoothDevice device : devices)
-            {
-                listEntries.add(device.getName());
-            }
-
-            deviceList = listEntries.toArray(new CharSequence[listEntries.size()]);
-
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ConfigureActivity.this);
-            alertDialogBuilder.setItems(deviceList,deviceSelectedListener).show();
+            BluetoothDialogBuilder bluetoothDialogBuilder = new BluetoothDialogBuilder(ConfigureActivity.this);
+            deviceList = bluetoothDialogBuilder.getDeviceList();
+            bluetoothDialogBuilder.build().show();
         }
     };
 
@@ -126,7 +120,9 @@ public class ConfigureActivity extends Activity {
     //点击添加按钮
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
-            final Context context = ConfigureActivity.this;
+
+            if (!validate()) return;
+            Context context = ConfigureActivity.this;
 
             //保存设置
             int buttonColor =  color;
@@ -135,13 +131,11 @@ public class ConfigureActivity extends Activity {
             String deviceName = txtDeviceName.getText().toString();
             boolean enableRemote = cbxRemote.isChecked();
             boolean enableBluetooth = cbxBluetooth.isChecked();
-
-            if (!validate()) return;
-
+            String remoteDeviceID = txtRemote.getText().toString();
 
             WidgetSetting.saveSetting(context, mAppWidgetId,
                     new WidgetSetting(buttonColor, buttonLabel, buttonValue,
-                            deviceName, enableRemote, enableBluetooth));
+                            deviceName, enableRemote, enableBluetooth,remoteDeviceID));
 
             // 更新Widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -172,8 +166,13 @@ public class ConfigureActivity extends Activity {
             return false;
         }
 
-        if(txtDeviceName.getText().toString().equals("")) {
-            txtDeviceName.setError("请选择设备");
+        if(cbxRemote.isChecked() && txtRemote.getText().toString().equals("")) {
+            txtRemote.setError("请输入设备ID");
+            return false;
+        }
+
+        if(cbxBluetooth.isChecked() && txtDeviceName.getText().toString().equals("")) {
+            txtDeviceName.setError("请选择蓝牙设备");
             return false;
         }
 
