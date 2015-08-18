@@ -13,8 +13,6 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 import com.mobilejohnny.iotwidget.utils.Request;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -88,13 +86,13 @@ public class ButtonAppWidget extends AppWidgetProvider {
 
     private void sendMessageViaXMPush(final Context context, final int appWidgetID, String remoteDeviceID, String msg)
     {
-        final ArrayList<NameValuePair> parameters = new ArrayList<>();
-        parameters.add(new BasicNameValuePair("id", remoteDeviceID));
-        parameters.add(new BasicNameValuePair("msg",msg));
+//        final ArrayList<NameValuePair> parameters = new ArrayList<>();
+//        parameters.add(new BasicNameValuePair("id", remoteDeviceID));
+//        parameters.add(new BasicNameValuePair("msg",msg));
         new AsyncTask<Void,Void,Boolean>(){
             @Override
             protected Boolean doInBackground(Void... voids) {
-                String content = Request.post(Constants.SEND_URL, parameters);
+                String content = Request.post(Constants.SEND_URL);
 //                Log.i("",content);
                 return content.equals("true");
             }

@@ -18,14 +18,7 @@ import android.widget.Toast;
 
 import com.mobilejohnny.iotserver.utils.Request;
 import com.xiaomi.mipush.sdk.*;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,10 +72,10 @@ public class XMPushReceiver extends PushMessageReceiver {
             if(MiPushClient.COMMAND_REGISTER.equals(command))
             {
                 String reg_id = arguments.get(0);
-                ArrayList<NameValuePair> parameters = new ArrayList<>();
-                parameters.add(new BasicNameValuePair("regid", reg_id));
+//                ArrayList<NameValuePair> parameters = new ArrayList<>();
+//                parameters.add(new BasicNameValuePair("regid", reg_id));
 
-                String content = Request.post(Constants.REG_URL,parameters);
+                String content = Request.post(Constants.REG_URL);
                 try {
                     JSONObject jsonObject = new JSONObject(content);
                     int id = jsonObject.getInt("id");
