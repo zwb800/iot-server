@@ -84,7 +84,8 @@ public class ButtonAppWidget extends AppWidgetProvider {
         BluetoothService.startActionSend(context, appWidgetID, deviceName, value.getBytes());
     }
 
-    private void sendMessageViaXMPush(final Context context, final int appWidgetID, String remoteDeviceID, String msg)
+    private void sendMessageViaXMPush(final Context context, final int appWidgetID,
+                                      final String remoteDeviceID, final String msg)
     {
 //        final ArrayList<NameValuePair> parameters = new ArrayList<>();
 //        parameters.add(new BasicNameValuePair("id", remoteDeviceID));
@@ -92,8 +93,10 @@ public class ButtonAppWidget extends AppWidgetProvider {
         new AsyncTask<Void,Void,Boolean>(){
             @Override
             protected Boolean doInBackground(Void... voids) {
-                String content = Request.post(Constants.SEND_URL);
-//                Log.i("",content);
+                String url = Constants.SEND_URL+
+                        "&alias="+remoteDeviceID+"&msg="+msg;
+                String content = Request.post(url);
+                Log.i("",content);
                 return content.equals("true");
             }
 
