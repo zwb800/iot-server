@@ -103,8 +103,10 @@ public class ConfigureActivity extends Activity {
         public void onClick(View view) {
 
             BluetoothDialogBuilder bluetoothDialogBuilder = new BluetoothDialogBuilder(ConfigureActivity.this);
-            deviceList = bluetoothDialogBuilder.getDeviceList();
+
+            bluetoothDialogBuilder.setDeviceSelectedListener(deviceSelectedListener);
             bluetoothDialogBuilder.build().show();
+            deviceList = bluetoothDialogBuilder.getDeviceList();
         }
     };
 

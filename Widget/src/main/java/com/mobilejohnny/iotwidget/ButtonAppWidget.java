@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 import com.mobilejohnny.iotwidget.utils.Request;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 import java.io.IOException;
@@ -96,8 +98,14 @@ public class ButtonAppWidget extends AppWidgetProvider {
                 String url = Constants.SEND_URL+
                         "&alias="+remoteDeviceID+"&msg="+msg;
                 String content = Request.post(url);
+                try {
+                    JSONObject jsonObject = new JSONObject(content);
+                    return jsonObject.getInt("status")==0;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 Log.i("",content);
-                return content.equals("true");
+                return false;
             }
 
             @Override
