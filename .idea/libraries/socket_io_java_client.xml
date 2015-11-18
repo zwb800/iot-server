@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="socket.io-java-client">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/JavaServer/libs/socket.io-java-client.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

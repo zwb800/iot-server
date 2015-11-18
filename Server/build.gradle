@@ -14,10 +14,10 @@ repositories {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23"
+    buildToolsVersion '23.0.2'
 
     defaultConfig {
-        applicationId "com.mobilejohnny.iotserver"
+        applicationId "iot.androidserver"
         minSdkVersion 9
         targetSdkVersion 23
         versionCode 1
@@ -32,10 +32,10 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.0.0'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23+'
     compile 'com.google.android.gms:play-services:4.0+'
-    compile 'com.android.support:gridlayout-v7:23.0.0'
+    compile 'com.android.support:gridlayout-v7:23+'
     compile 'ch.acra:acra:4.6.2'
-//    compile 'eu.the4thfloor.volley:com.android.volley:2015.05.28'
+    //    compile 'eu.the4thfloor.volley:com.android.volley:2015.05.28'
 }

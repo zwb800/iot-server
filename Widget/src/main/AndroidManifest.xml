@@ -11,9 +11,9 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        <activity
-                android:name=".ColorSelectDialog"
-                android:label="@string/title_activity_color_select_dialog" ></activity>
+        <!--<activity-->
+                <!--android:name=".ColorSelectDialog"-->
+                <!--android:label="@string/title_activity_color_select_dialog" ></activity>-->
         <receiver android:name=".ButtonAppWidget" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -31,7 +31,7 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
-        <activity android:name=".BluetoothDeviceListActivity"></activity>
+        <!--<activity android:name=".BluetoothDeviceListActivity"></activity>-->
         <service
                 android:name=".BluetoothService"
                 android:exported="false" >

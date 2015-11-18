@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Iot.iml" filepath="$PROJECT_DIR$/Iot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JavaServer/JavaServer.iml" filepath="$PROJECT_DIR$/JavaServer/JavaServer.iml" />
       <module fileurl="file://$PROJECT_DIR$/Server/Server.iml" filepath="$PROJECT_DIR$/Server/Server.iml" />
       <module fileurl="file://$PROJECT_DIR$/Widget/Widget.iml" filepath="$PROJECT_DIR$/Widget/Widget.iml" />
       <module fileurl="file://$PROJECT_DIR$/iot-server.iml" filepath="$PROJECT_DIR$/iot-server.iml" />
